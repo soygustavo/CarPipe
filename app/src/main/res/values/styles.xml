@@ -155,4 +155,175 @@
 
     <style name="RouterActivityThemeDark" parent="Base.RouterActivityThemeDark" />
 
+    <!-- ===== ESTILOS OPTIMIZADOS PARA AUTOMÓVILES ===== -->
+    
+    <!-- Tema base optimizado para automóviles -->
+    <style name="Base.V21.CarTheme" parent="Base">
+        <!-- Aumentar tamaño de texto base a 18sp -->
+        <item name="android:textSize">18sp</item>
+        <!-- Establecer altura mínima de elementos a 60dp -->
+        <item name="android:minHeight">60dp</item>
+        <!-- Aumentar listPreferredItemHeight a 80dp -->
+        <item name="android:listPreferredItemHeight">80dp</item>
+        <!-- Aumentar paddings de lista a 24dp -->
+        <item name="android:padding">24dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">24dp</item>
+    </style>
+    <style name="Base.CarTheme" parent="Base.V21.CarTheme" />
+
+    <!-- Tema claro optimizado para automóviles -->
+    <style name="Base.V21.LightCarTheme" parent="LightTheme">
+        <!-- Aumentar tamaño de texto base a 18sp -->
+        <item name="android:textSize">18sp</item>
+        <!-- Establecer altura mínima de elementos a 60dp -->
+        <item name="android:minHeight">60dp</item>
+        <!-- Aumentar listPreferredItemHeight a 80dp -->
+        <item name="android:listPreferredItemHeight">80dp</item>
+        <!-- Aumentar paddings de lista a 24dp -->
+        <item name="android:padding">24dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">24dp</item>
+    </style>
+    <style name="Base.LightCarTheme" parent="Base.V21.LightCarTheme" />
+    <style name="LightCarTheme" parent="Base.LightCarTheme" />
+
+    <!-- Tema oscuro optimizado para automóviles -->
+    <style name="Base.V21.DarkCarTheme" parent="DarkTheme">
+        <!-- Aumentar tamaño de texto base a 18sp -->
+        <item name="android:textSize">18sp</item>
+        <!-- Establecer altura mínima de elementos a 60dp -->
+        <item name="android:minHeight">60dp</item>
+        <!-- Aumentar listPreferredItemHeight a 80dp -->
+        <item name="android:listPreferredItemHeight">80dp</item>
+        <!-- Aumentar paddings de lista a 24dp -->
+        <item name="android:padding">24dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">24dp</item>
+    </style>
+    <style name="Base.DarkCarTheme" parent="Base.V21.DarkCarTheme" />
+    <style name="DarkCarTheme" parent="Base.DarkCarTheme" />
+
+    <!-- Tema negro optimizado para automóviles -->
+    <style name="Base.V21.BlackCarTheme" parent="BlackTheme">
+        <!-- Aumentar tamaño de texto base a 18sp -->
+        <item name="android:textSize">18sp</item>
+        <!-- Establecer altura mínima de elementos a 60dp -->
+        <item name="android:minHeight">60dp</item>
+        <!-- Aumentar listPreferredItemHeight a 80dp -->
+        <item name="android:listPreferredItemHeight">80dp</item>
+        <!-- Aumentar paddings de lista a 24dp -->
+        <item name="android:padding">24dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">24dp</item>
+    </style>
+    <style name="Base.BlackCarTheme" parent="Base.V21.BlackCarTheme" />
+    <style name="BlackCarTheme" parent="Base.BlackCarTheme" />
+
+    <!-- Estilo específico para botones de automóvil -->
+    <style name="CarButton" parent="Widget.AppCompat.Button">
+        <!-- Altura mínima de 80dp para botones de automóvil -->
+        <item name="android:minHeight">80dp</item>
+        <item name="android:minWidth">120dp</item>
+        <!-- Tamaño de texto de 20sp para botones de automóvil -->
+        <item name="android:textSize">20sp</item>
+        <!-- Padding aumentado para mejor usabilidad táctil -->
+        <item name="android:padding">16dp</item>
+        <!-- Margen para separación entre botones -->
+        <item name="android:layout_margin">8dp</item>
+        <!-- Bordes redondeados para mejor apariencia -->
+        <item name="android:background">@drawable/car_button_background</item>
+    </style>
+
+    <!-- Estilo para botones de automóvil con tema claro -->
+    <style name="CarButton.Light" parent="CarButton">
+        <item name="android:textColor">@color/light_youtube_primary_color</item>
+        <item name="android:backgroundTint">@color/light_contrast_background_color</item>
+    </style>
+
+    <!-- Estilo para botones de automóvil con tema oscuro -->
+    <style name="CarButton.Dark" parent="CarButton">
+        <item name="android:textColor">@color/dark_youtube_primary_color</item>
+        <item name="android:backgroundTint">@color/dark_contrast_background_color</item>
+    </style>
+
+    <!-- Estilo para botones de automóvil con tema negro -->
+    <style name="CarButton.Black" parent="CarButton">
+        <item name="android:textColor">@color/dark_youtube_primary_color</item>
+        <item name="android:backgroundTint">@color/black_contrast_background_color</item>
+    </style>
+
+    <!-- Estilo CarTextAppearance con 20sp de texto y 1.3 de lineSpacingMultiplier -->
+    <style name="CarTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">20sp</item>
+        <item name="android:lineSpacingMultiplier">1.3</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textStyle">normal</item>
+    </style>
+
+    <!-- Estilo CarTextAppearance para títulos -->
+    <style name="CarTextAppearance.Title" parent="CarTextAppearance">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:lineSpacingMultiplier">1.2</item>
+    </style>
+
+    <!-- Estilo CarTextAppearance para subtítulos -->
+    <style name="CarTextAppearance.Subtitle" parent="CarTextAppearance">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:lineSpacingMultiplier">1.25</item>
+    </style>
+
+    <!-- Estilo para elementos de lista optimizados para automóvil -->
+    <style name="CarListItem" parent="Widget.AppCompat.ListView">
+        <item name="android:listPreferredItemHeight">80dp</item>
+        <item name="android:padding">24dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:dividerHeight">16dp</item>
+    </style>
+
+    <!-- Estilo para elementos de lista individuales -->
+    <style name="CarListItem.Item">
+        <item name="android:minHeight">80dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineSpacingMultiplier">1.3</item>
+    </style>
+
+    <!-- Estilo para barras de herramientas optimizadas para automóvil -->
+    <style name="CarToolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:minHeight">80dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <!-- Estilo para campos de texto optimizados para automóvil -->
+    <style name="CarEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:minHeight">60dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:lineSpacingMultiplier">1.3</item>
+    </style>
+
+    <!-- Estilo para tarjetas optimizadas para automóvil -->
+    <style name="CarCard">
+        <item name="android:minHeight">80dp</item>
+        <item name="android:padding">24dp</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="contentPadding">16dp</item>
+    </style>
+
 </resources>
