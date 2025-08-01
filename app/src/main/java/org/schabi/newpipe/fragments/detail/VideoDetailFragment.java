@@ -898,7 +898,7 @@ public final class VideoDetailFragment
             tabContentDescriptions.add(R.string.comments_tab_description);
         }
 
-        if (showRelatedItems && binding.relatedItemsLayout == null) {
+        if (showRelatedItems) {
             // temp empty fragment. will be updated in handleResult
             pageAdapter.addFragment(EmptyFragment.newInstance(false), RELATED_TAB_TAG);
             tabIcons.add(R.drawable.ic_art_track);
@@ -946,14 +946,7 @@ public final class VideoDetailFragment
 
     private void updateTabs(@NonNull final StreamInfo info) {
         if (showRelatedItems) {
-            if (binding.relatedItemsLayout == null) { // phone
-                pageAdapter.updateItem(RELATED_TAB_TAG, RelatedItemsFragment.getInstance(info));
-            } else { // tablet + TV
-                getChildFragmentManager().beginTransaction()
-                        .replace(R.id.relatedItemsLayout, RelatedItemsFragment.getInstance(info))
-                        .commitAllowingStateLoss();
-                binding.relatedItemsLayout.setVisibility(isFullscreen() ? View.GONE : View.VISIBLE);
-            }
+            pageAdapter.updateItem(RELATED_TAB_TAG, RelatedItemsFragment.getInstance(info));
         }
 
         if (showDescription) {
@@ -1380,9 +1373,7 @@ public final class VideoDetailFragment
         super.handleError();
         setErrorImage(R.drawable.not_available_monkey);
 
-        if (binding.relatedItemsLayout != null) { // hide related streams for tablets
-            binding.relatedItemsLayout.setVisibility(View.INVISIBLE);
-        }
+
 
         // hide comments / related streams / description tabs
         binding.viewPager.setVisibility(View.GONE);
@@ -1473,14 +1464,7 @@ public final class VideoDetailFragment
         binding.detailTitleRootLayout.setClickable(false);
         binding.detailSecondaryControlPanel.setVisibility(View.GONE);
 
-        if (binding.relatedItemsLayout != null) {
-            if (showRelatedItems) {
-                binding.relatedItemsLayout.setVisibility(
-                        isFullscreen() ? View.GONE : View.INVISIBLE);
-            } else {
-                binding.relatedItemsLayout.setVisibility(View.GONE);
-            }
-        }
+
 
         PicassoHelper.cancelTag(PICASSO_VIDEO_DETAILS_TAG);
         binding.detailThumbnailImageView.setImageBitmap(null);
@@ -1887,9 +1871,7 @@ public final class VideoDetailFragment
             showSystemUi();
         }
 
-        if (binding.relatedItemsLayout != null) {
-            binding.relatedItemsLayout.setVisibility(fullscreen ? View.GONE : View.VISIBLE);
-        }
+
         scrollToTop();
 
         tryAddVideoPlayerView();
