@@ -269,15 +269,6 @@
         <item name="android:textStyle">normal</item>
     </style>
 
-    <!-- Estilo CarTabTextAppearance optimizado para pestañas en automóviles -->
-    <style name="CarTabTextAppearance" parent="TextAppearance.Design.Tab">
-        <item name="android:textSize">30sp</item>
-        <item name="android:lineSpacingMultiplier">1.3</item>
-        <item name="android:letterSpacing">0.02</item>
-        <item name="android:textStyle">normal</item>
-        <item name="android:textColor">@color/white</item>
-    </style>
-
     <!-- Estilo CarTextAppearance para títulos -->
     <style name="CarTextAppearance.Title" parent="CarTextAppearance">
         <item name="android:textSize">36sp</item>

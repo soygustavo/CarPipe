@@ -8,17 +8,14 @@
     <org.schabi.newpipe.views.ScrollableTabLayout
         android:id="@+id/main_tab_layout"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:background="?attr/colorPrimary"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp"
         app:tabRippleColor="@color/white"
         app:tabIconTint="@color/white"
         app:tabIndicatorColor="@color/white"
         app:tabGravity="fill"
-        app:tabMinWidth="160dp"
-        app:tabTextAppearance="@style/CarTabTextAppearance" />
+        app:tabMinWidth="60dp" />
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/pager"
