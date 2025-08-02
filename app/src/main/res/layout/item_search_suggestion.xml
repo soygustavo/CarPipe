@@ -39,7 +39,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textSize="14sp"
+            android:textSize="18sp"
             tools:ignore="RtlHardcoded"
             tools:text="Search query" />
     </LinearLayout>

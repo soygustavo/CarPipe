@@ -621,7 +621,7 @@
         <LinearLayout
             android:id="@+id/overlay_metadata_layout"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="70dp"
             android:layout_toStartOf="@+id/overlay_buttons_layout"
             android:layout_toEndOf="@+id/overlay_thumbnail"
             android:clickable="true"
@@ -663,7 +663,7 @@
         <LinearLayout
             android:id="@+id/overlay_buttons_layout"
             android:layout_width="wrap_content"
-            android:layout_height="60dp"
+            android:layout_height="100dp"
             android:layout_alignParentEnd="true"
             android:gravity="center_vertical"
             android:theme="@style/ContrastTintTheme"
@@ -671,35 +671,35 @@
 
             <ImageButton
                 android:id="@+id/overlay_play_queue_button"
-                android:layout_width="48dp"
+                android:layout_width="78dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/title_activity_play_queue"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 android:padding="12dp"
                 android:src="@drawable/ic_list"
                 tools:ignore="RtlHardcoded" />
 
             <ImageButton
                 android:id="@+id/overlay_play_pause_button"
-                android:layout_width="48dp"
+                android:layout_width="78dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/pause"
                 android:focusable="true"
                 android:focusedByDefault="true"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 android:padding="12dp"
                 android:src="@drawable/ic_play_arrow" />
 
             <ImageButton
                 android:id="@+id/overlay_close_button"
-                android:layout_width="56dp"
+                android:layout_width="78dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/close"
                 android:padding="12dp"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 android:src="@drawable/ic_close"
                 tools:ignore="RtlSymmetry" />
 
