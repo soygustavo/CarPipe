@@ -56,7 +56,7 @@
     <dimen name="player_main_controls_padding">42dp</dimen>
     <dimen name="player_popup_controls_padding">22dp</dimen>
     <dimen name="player_main_top_padding">16dp</dimen>
-    <dimen name="player_main_buttons_padding">22dp</dimen>
+    <dimen name="player_main_buttons_padding">8dp</dimen>
     <dimen name="player_popup_buttons_padding">8dp</dimen>
     <dimen name="player_main_buttons_min_width">140dp</dimen>
     <dimen name="player_notification_thumbnail_width">420dp</dimen>
@@ -68,25 +68,25 @@
 
     <!-- Video Item Detail View Dimensions - Optimized for car use +60% -->
     <!-- Text Size - Increased for car readability -->
-    <dimen name="video_item_detail_title_text_size">31sp</dimen>
-    <dimen name="video_item_detail_views_text_size">28sp</dimen>
-    <dimen name="video_item_detail_likes_text_size">24sp</dimen>
-    <dimen name="video_item_detail_uploader_text_size">24sp</dimen>
-    <dimen name="video_item_detail_sub_channel_text_size">28sp</dimen>
-    <dimen name="video_item_detail_upload_date_text_size">28sp</dimen>
-    <dimen name="video_item_detail_description_text_size">28sp</dimen>
-    <dimen name="channel_rss_title_size">28sp</dimen>
+    <dimen name="video_item_detail_title_text_size">28sp</dimen>
+    <dimen name="video_item_detail_views_text_size">22sp</dimen>
+    <dimen name="video_item_detail_likes_text_size">22sp</dimen>
+    <dimen name="video_item_detail_uploader_text_size">22sp</dimen>
+    <dimen name="video_item_detail_sub_channel_text_size">22sp</dimen>
+    <dimen name="video_item_detail_upload_date_text_size">22sp</dimen>
+    <dimen name="video_item_detail_description_text_size">22sp</dimen>
+    <dimen name="channel_rss_title_size">22sp</dimen>
     <!-- Elements Size - Larger for car use -->
-    <dimen name="video_item_detail_uploader_image_size">84dp</dimen>
-    <dimen name="video_item_detail_pinned_image_width">42sp</dimen>
-    <dimen name="video_item_detail_pinned_image_height">42sp</dimen>
-    <dimen name="video_item_detail_sub_channel_image_size">42dp</dimen>
-    <dimen name="video_item_detail_like_image_height">42sp</dimen>
-    <dimen name="video_item_detail_like_image_width">42sp</dimen>
-    <dimen name="video_item_detail_heart_image_size">42sp</dimen>
-    <dimen name="channel_avatar_size">140dp</dimen>
-    <dimen name="sub_channel_avatar_size">84dp</dimen>
-    <dimen name="mini_player_height">140dp</dimen>
+    <dimen name="video_item_detail_uploader_image_size">60dp</dimen>
+    <dimen name="video_item_detail_pinned_image_width">36sp</dimen>
+    <dimen name="video_item_detail_pinned_image_height">36sp</dimen>
+    <dimen name="video_item_detail_sub_channel_image_size">36dp</dimen>
+    <dimen name="video_item_detail_like_image_height">36sp</dimen>
+    <dimen name="video_item_detail_like_image_width">36sp</dimen>
+    <dimen name="video_item_detail_heart_image_size">36sp</dimen>
+    <dimen name="channel_avatar_size">100dp</dimen>
+    <dimen name="sub_channel_avatar_size">60dp</dimen>
+    <dimen name="mini_player_height">100dp</dimen>
     <!-- Paddings & Margins - Increased for car use -->
     <dimen name="video_item_detail_pinned_right_margin">16dp</dimen>
     <dimen name="video_item_detail_like_margin">16dp</dimen>

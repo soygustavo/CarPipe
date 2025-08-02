@@ -230,7 +230,7 @@
                     <RelativeLayout
                         android:id="@+id/detail_root"
                         android:layout_width="match_parent"
-                        android:layout_height="55dp"
+                        android:layout_height="75dp"
                         android:layout_marginLeft="12dp"
                         android:layout_marginTop="6dp"
                         android:layout_marginRight="12dp"
@@ -583,6 +583,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:paddingBottom="48dp"
+            android:visibility="gone"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         <com.google.android.material.tabs.TabLayout
