@@ -48,7 +48,9 @@ public class ExpandableSurfaceView extends SurfaceView {
             if (aspectDeformation > 0) {
                 height = (int) (width / videoAspectRatio);
             } else {
-                width = (int) (height * videoAspectRatio);
+                // Forzar que siempre use todo el ancho disponible
+                width = MeasureSpec.getSize(widthMeasureSpec);
+                height = (int) (width / videoAspectRatio);
             }
         } else if (resizeMode == RESIZE_MODE_ZOOM) {
             if (aspectDeformation < 0) {

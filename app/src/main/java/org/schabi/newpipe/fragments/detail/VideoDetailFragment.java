@@ -23,7 +23,6 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.database.ContentObserver;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,11 +31,11 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
@@ -84,10 +83,7 @@ import org.schabi.newpipe.extractor.stream.StreamType;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.fragments.BackPressable;
 import org.schabi.newpipe.fragments.BaseStateFragment;
-import org.schabi.newpipe.fragments.EmptyFragment;
 import org.schabi.newpipe.fragments.MainFragment;
-import org.schabi.newpipe.fragments.list.comments.CommentsFragment;
-import org.schabi.newpipe.fragments.list.videos.RelatedItemsFragment;
 import org.schabi.newpipe.ktx.AnimationType;
 import org.schabi.newpipe.local.dialog.PlaylistDialog;
 import org.schabi.newpipe.local.history.HistoryRecordManager;
@@ -178,13 +174,13 @@ public final class VideoDetailFragment
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener =
             (sharedPreferences, key) -> {
                 if (getString(R.string.show_comments_key).equals(key)) {
-                    showComments = sharedPreferences.getBoolean(key, true);
+                    showComments = false;
                     tabSettingsChanged = true;
                 } else if (getString(R.string.show_next_video_key).equals(key)) {
-                    showRelatedItems = sharedPreferences.getBoolean(key, true);
+                    showRelatedItems = false;
                     tabSettingsChanged = true;
                 } else if (getString(R.string.show_description_key).equals(key)) {
-                    showDescription = sharedPreferences.getBoolean(key, true);
+                    showDescription = false;
                     tabSettingsChanged = true;
                 }
             };
@@ -317,9 +313,14 @@ public final class VideoDetailFragment
         super.onCreate(savedInstanceState);
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(activity);
-        showComments = prefs.getBoolean(getString(R.string.show_comments_key), true);
-        showRelatedItems = prefs.getBoolean(getString(R.string.show_next_video_key), true);
-        showDescription = prefs.getBoolean(getString(R.string.show_description_key), true);
+
+        // Forzar que el modo tablet esté desactivado para evitar layouts específicos
+        prefs.edit().putString(getString(R.string.tablet_mode_key),
+                getString(R.string.tablet_mode_off_key)).apply();
+
+        showComments = false;
+        showRelatedItems = false;
+        showDescription = false;
         selectedTabTag = prefs.getString(
                 getString(R.string.stream_info_selected_tab_key), COMMENTS_TAB_TAG);
         prefs.registerOnSharedPreferenceChangeListener(preferenceChangeListener);
@@ -385,6 +386,13 @@ public final class VideoDetailFragment
         if (wasLoading.getAndSet(false) && !wasCleared()) {
             startLoading(false);
         }
+
+        // Forzar ancho completo del reproductor al reanudar
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (isPlayerAvailable()) {
+                forcePlayerFullWidth();
+            }
+        }, 200);
     }
 
     @Override
@@ -884,48 +892,14 @@ public final class VideoDetailFragment
     //////////////////////////////////////////////////////////////////////////*/
 
     private void initTabs() {
-        if (pageAdapter.getCount() != 0) {
-            selectedTabTag = pageAdapter.getItemTitle(binding.viewPager.getCurrentItem());
-        }
+        // Ocultar completamente el ViewPager y TabLayout para que el fragmento ocupe todo el ancho
+        binding.viewPager.setVisibility(View.GONE);
+        binding.tabLayout.setVisibility(View.GONE);
+        // Limpiar el adaptador pero no agregar ningún fragmento
         pageAdapter.clearAllItems();
         tabIcons.clear();
         tabContentDescriptions.clear();
-
-        if (shouldShowComments()) {
-            pageAdapter.addFragment(
-                    CommentsFragment.getInstance(serviceId, url, title), COMMENTS_TAB_TAG);
-            tabIcons.add(R.drawable.ic_comment);
-            tabContentDescriptions.add(R.string.comments_tab_description);
-        }
-
-        if (showRelatedItems) {
-            // temp empty fragment. will be updated in handleResult
-            pageAdapter.addFragment(EmptyFragment.newInstance(false), RELATED_TAB_TAG);
-            tabIcons.add(R.drawable.ic_art_track);
-            tabContentDescriptions.add(R.string.related_items_tab_description);
-        }
-
-        if (showDescription) {
-            // temp empty fragment. will be updated in handleResult
-            pageAdapter.addFragment(EmptyFragment.newInstance(false), DESCRIPTION_TAB_TAG);
-            tabIcons.add(R.drawable.ic_description);
-            tabContentDescriptions.add(R.string.description_tab_description);
-        }
-
-        if (pageAdapter.getCount() == 0) {
-            pageAdapter.addFragment(EmptyFragment.newInstance(true), EMPTY_TAB_TAG);
-        }
         pageAdapter.notifyDataSetUpdate();
-
-        if (pageAdapter.getCount() >= 2) {
-            final int position = pageAdapter.getItemPositionByTitle(selectedTabTag);
-            if (position != -1) {
-                binding.viewPager.setCurrentItem(position);
-            }
-            updateTabIconsAndContentDescriptions();
-        }
-        // the page adapter now contains tabs: show the tab layout
-        updateTabLayoutVisibility();
     }
 
     /**
@@ -945,19 +919,8 @@ public final class VideoDetailFragment
     }
 
     private void updateTabs(@NonNull final StreamInfo info) {
-        if (showRelatedItems) {
-            pageAdapter.updateItem(RELATED_TAB_TAG, RelatedItemsFragment.getInstance(info));
-        }
-
-        if (showDescription) {
-            pageAdapter.updateItem(DESCRIPTION_TAB_TAG, new DescriptionFragment(info));
-        }
-
-        binding.viewPager.setVisibility(View.VISIBLE);
-        // make sure the tab layout is visible
-        updateTabLayoutVisibility();
-        pageAdapter.notifyDataSetUpdate();
-        updateTabIconsAndContentDescriptions();
+        // No hacer nada ya que queremos ocultar todas las pestañas
+        // El ViewPager y TabLayout permanecen ocultos
     }
 
     private boolean shouldShowComments() {
@@ -972,41 +935,9 @@ public final class VideoDetailFragment
     }
 
     public void updateTabLayoutVisibility() {
-
-        if (binding == null) {
-            //If binding is null we do not need to and should not do anything with its object(s)
-            return;
-        }
-
-        if (pageAdapter.getCount() < 2 || binding.viewPager.getVisibility() != View.VISIBLE) {
-            // hide tab layout if there is only one tab or if the view pager is also hidden
+        // Mantener el TabLayout siempre oculto ya que no queremos mostrar pestañas
+        if (binding != null) {
             binding.tabLayout.setVisibility(View.GONE);
-        } else {
-            // call `post()` to be sure `viewPager.getHitRect()`
-            // is up to date and not being currently recomputed
-            binding.tabLayout.post(() -> {
-                final var activity = getActivity();
-                if (activity != null) {
-                    final Rect pagerHitRect = new Rect();
-                    binding.viewPager.getHitRect(pagerHitRect);
-
-                    final int height = DeviceUtils.getWindowHeight(activity.getWindowManager());
-                    final int viewPagerVisibleHeight = height - pagerHitRect.top;
-                    // see TabLayout.DEFAULT_HEIGHT, which is equal to 48dp
-                    final float tabLayoutHeight = TypedValue.applyDimension(
-                            TypedValue.COMPLEX_UNIT_DIP, 48, getResources().getDisplayMetrics());
-
-                    if (viewPagerVisibleHeight > tabLayoutHeight * 2) {
-                        // no translation at all when viewPagerVisibleHeight > tabLayout.height * 3
-                        binding.tabLayout.setTranslationY(
-                                Math.max(0, tabLayoutHeight * 3 - viewPagerVisibleHeight));
-                        binding.tabLayout.setVisibility(View.VISIBLE);
-                    } else {
-                        // view pager is not visible enough
-                        binding.tabLayout.setVisibility(View.GONE);
-                    }
-                }
-            });
         }
     }
 
@@ -1017,17 +948,7 @@ public final class VideoDetailFragment
     }
 
     public void scrollToComment(final CommentsInfoItem comment) {
-        final int commentsTabPos = pageAdapter.getItemPositionByTitle(COMMENTS_TAB_TAG);
-        final Fragment fragment = pageAdapter.getItem(commentsTabPos);
-        if (!(fragment instanceof CommentsFragment)) {
-            return;
-        }
-
-        // unexpand the app bar only if scrolling to the comment succeeded
-        if (((CommentsFragment) fragment).scrollToComment(comment)) {
-            binding.appBarLayout.setExpanded(false, false);
-            binding.viewPager.setCurrentItem(commentsTabPos, false);
-        }
+        // No hacer nada ya que las pestañas están deshabilitadas
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1261,6 +1182,24 @@ public final class VideoDetailFragment
                     playerUi.removeViewFromParent();
                     binding.playerPlaceholder.addView(playerUi.getBinding().getRoot());
                     playerUi.setupVideoSurfaceIfNeeded();
+                    // Asegurar ancho completo del reproductor
+                    forcePlayerFullWidth();
+                    // Aplicar delays adicionales para asegurar que se aplique
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (isPlayerAvailable()) {
+                            forcePlayerFullWidth();
+                        }
+                    }, 100);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (isPlayerAvailable()) {
+                            forcePlayerFullWidth();
+                        }
+                    }, 500);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (isPlayerAvailable()) {
+                            forcePlayerFullWidth();
+                        }
+                    }, 1000);
                 }
             });
         });
@@ -1281,6 +1220,14 @@ public final class VideoDetailFragment
 
         binding.playerPlaceholder.getLayoutParams().height = FrameLayout.LayoutParams.MATCH_PARENT;
         binding.playerPlaceholder.requestLayout();
+        // Asegurar ancho completo si está en fullscreen
+        if (isPlayerAvailable() && player.UIs().get(MainPlayerUi.class).isPresent()) {
+            player.UIs().get(MainPlayerUi.class).ifPresent(playerUi -> {
+                if (playerUi.isFullscreen()) {
+                    forcePlayerFullWidth();
+                }
+            });
+        }
     }
 
     private final ViewTreeObserver.OnPreDrawListener preDrawListener =
@@ -1337,9 +1284,14 @@ public final class VideoDetailFragment
         binding.detailThumbnailImageView.setMinimumHeight(newHeight);
         if (isPlayerAvailable()) {
             final int maxHeight = (int) (metrics.heightPixels * MAX_PLAYER_HEIGHT);
-            player.UIs().get(VideoPlayerUi.class).ifPresent(ui ->
-                    ui.getBinding().surfaceView.setHeights(newHeight,
-                            ui.isFullscreen() ? newHeight : maxHeight));
+            player.UIs().get(VideoPlayerUi.class).ifPresent(ui -> {
+                ui.getBinding().surfaceView.setHeights(newHeight,
+                        ui.isFullscreen() ? newHeight : maxHeight);
+                // En modo fullscreen, forzar ancho completo
+                if (ui.isFullscreen()) {
+                    forcePlayerFullWidth();
+                }
+            });
         }
     }
 
@@ -1373,11 +1325,7 @@ public final class VideoDetailFragment
         super.handleError();
         setErrorImage(R.drawable.not_available_monkey);
 
-
-
-        // hide comments / related streams / description tabs
-        binding.viewPager.setVisibility(View.GONE);
-        binding.tabLayout.setVisibility(View.GONE);
+        // El ViewPager y TabLayout ya están ocultos por defecto
     }
 
     private void hideAgeRestrictedContent() {
@@ -1867,10 +1815,11 @@ public final class VideoDetailFragment
         if (fullscreen) {
             hideSystemUiIfNeeded();
             binding.overlayPlayPauseButton.requestFocus();
+                            // En modo fullscreen, forzar ancho completo
+                forcePlayerFullWidth();
         } else {
             showSystemUi();
         }
-
 
         scrollToTop();
 
@@ -2460,6 +2409,91 @@ public final class VideoDetailFragment
         if (newState != BottomSheetBehavior.STATE_DRAGGING
                 && newState != BottomSheetBehavior.STATE_SETTLING) {
             lastStableBottomSheetState = newState;
+        }
+    }
+
+    /**
+     * Fuerza que el reproductor ocupe todo el ancho disponible.
+     */
+    private void forcePlayerFullWidth() {
+        if (isPlayerAvailable()) {
+            player.UIs().get(MainPlayerUi.class).ifPresent(playerUi -> {
+                // Forzar ancho completo en el contenedor principal
+                final ViewGroup.LayoutParams params = playerUi.getBinding().getRoot()
+                        .getLayoutParams();
+                if (params != null) {
+                    params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().getRoot().setLayoutParams(params);
+                }
+                // Forzar ancho completo en el surface view
+                final ViewGroup.LayoutParams surfaceParams = playerUi.getBinding()
+                        .surfaceView.getLayoutParams();
+                if (surfaceParams != null) {
+                    surfaceParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().surfaceView.setLayoutParams(surfaceParams);
+                }
+                // Forzar ancho completo en el playbackControlRoot
+                final ViewGroup.LayoutParams controlParams = playerUi.getBinding()
+                        .playbackControlRoot.getLayoutParams();
+                if (controlParams != null) {
+                    controlParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().playbackControlRoot.setLayoutParams(controlParams);
+                }
+                // Forzar ancho completo en el playbackWindowRoot
+                final ViewGroup.LayoutParams windowParams = playerUi.getBinding()
+                        .playbackWindowRoot.getLayoutParams();
+                if (windowParams != null) {
+                    windowParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().playbackWindowRoot.setLayoutParams(windowParams);
+                }
+                // Forzar ancho completo en el topControls
+                final ViewGroup.LayoutParams topParams = playerUi.getBinding()
+                        .topControls.getLayoutParams();
+                if (topParams != null) {
+                    topParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().topControls.setLayoutParams(topParams);
+                }
+                // Forzar ancho completo en el primaryControls
+                final ViewGroup.LayoutParams primaryParams = playerUi.getBinding()
+                        .primaryControls.getLayoutParams();
+                if (primaryParams != null) {
+                    primaryParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    playerUi.getBinding().primaryControls.setLayoutParams(primaryParams);
+                }
+                // Solicitar un nuevo layout
+                playerUi.getBinding().getRoot().requestLayout();
+                // También forzar el ancho del contenedor padre
+                if (binding != null) {
+                    final ViewGroup.LayoutParams placeholderParams = binding.playerPlaceholder
+                            .getLayoutParams();
+                    if (placeholderParams != null) {
+                        placeholderParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                        binding.playerPlaceholder.setLayoutParams(placeholderParams);
+                    }
+                    binding.playerPlaceholder.requestLayout();
+                }
+
+                        // Forzar ancho completo en todos los contenedores padres
+                forceParentContainersFullWidth(playerUi.getBinding().getRoot());
+            });
+        }
+    }
+
+    /**
+     * Fuerza que todos los contenedores padres ocupen todo el ancho disponible.
+     *
+     * @param view la vista desde la cual comenzar a forzar el ancho
+     */
+    private void forceParentContainersFullWidth(final View view) {
+        ViewParent parent = view.getParent();
+        while (parent instanceof ViewGroup) {
+            final ViewGroup parentView = (ViewGroup) parent;
+            final ViewGroup.LayoutParams params = parentView.getLayoutParams();
+            if (params != null) {
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                parentView.setLayoutParams(params);
+            }
+            parent = parentView.getParent();
         }
     }
 }
