@@ -87,7 +87,7 @@
         android:layout_below="@id/playlist_meta"
         android:paddingHorizontal="@dimen/video_item_search_padding"
         android:paddingTop="6dp"
-        android:maxLines="5"
+        android:maxLines="2"
         tools:text="This is a multiline playlist description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tristique vitae sem vitae blandit Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tristique vitae sem vitae blandit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tristique vitae sem vitae blandit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc tristique vitae sem vitae blandit" />
 
     <org.schabi.newpipe.views.NewPipeTextView

@@ -68,13 +68,13 @@
 
     <!-- Video Item Detail View Dimensions - Optimized for car use +60% -->
     <!-- Text Size - Increased for car readability -->
-    <dimen name="video_item_detail_title_text_size">35sp</dimen>
-    <dimen name="video_item_detail_views_text_size">32sp</dimen>
-    <dimen name="video_item_detail_likes_text_size">28sp</dimen>
-    <dimen name="video_item_detail_uploader_text_size">28sp</dimen>
-    <dimen name="video_item_detail_sub_channel_text_size">32sp</dimen>
-    <dimen name="video_item_detail_upload_date_text_size">32sp</dimen>
-    <dimen name="video_item_detail_description_text_size">32sp</dimen>
+    <dimen name="video_item_detail_title_text_size">31sp</dimen>
+    <dimen name="video_item_detail_views_text_size">28sp</dimen>
+    <dimen name="video_item_detail_likes_text_size">24sp</dimen>
+    <dimen name="video_item_detail_uploader_text_size">24sp</dimen>
+    <dimen name="video_item_detail_sub_channel_text_size">28sp</dimen>
+    <dimen name="video_item_detail_upload_date_text_size">28sp</dimen>
+    <dimen name="video_item_detail_description_text_size">28sp</dimen>
     <dimen name="channel_rss_title_size">28sp</dimen>
     <!-- Elements Size - Larger for car use -->
     <dimen name="video_item_detail_uploader_image_size">84dp</dimen>
@@ -111,8 +111,8 @@
     <dimen name="playlist_ctrl_height">140dp</dimen>
     <dimen name="playlist_ctrl_separator_margin">28dp</dimen>
     <!-- Text Size - Increased for car use -->
-    <dimen name="playlist_detail_title_text_size">35sp</dimen>
-    <dimen name="playlist_detail_subtext_size">28sp</dimen>
+    <dimen name="playlist_detail_title_text_size">30sp</dimen>
+    <dimen name="playlist_detail_subtext_size">24sp</dimen>
     <!-- Elements Size - Larger for car use -->
     <dimen name="playlist_detail_uploader_image_size">56dp</dimen>
     <dimen name="playlist_detail_uploader_layout_height">70dp</dimen>
