@@ -101,20 +101,19 @@
 
             <ImageView
                 android:id="@+id/drawer_arrow"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="4dp"
                 android:src="@drawable/ic_arrow_drop_down"
                 app:tint="@color/drawer_header_font_color"
                 tools:ignore="ContentDescription" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/drawer_header_action_button"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:background="?selectableItemBackground" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/drawer_header_action_button"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="?selectableItemBackground"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

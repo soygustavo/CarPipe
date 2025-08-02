@@ -2,9 +2,14 @@
 <com.google.android.material.navigation.NavigationView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/navigation"
-    android:layout_width="wrap_content"
+    android:layout_width="620dp"
     android:layout_height="match_parent"
     android:layout_gravity="start"
     android:background="?android:attr/windowBackground"
     android:orientation="vertical"
-    app:headerLayout="@layout/drawer_header" />
+    android:paddingTop="24dp"
+    android:paddingBottom="24dp"
+    app:headerLayout="@layout/drawer_header"
+    app:itemBackground="@drawable/car_list_selector"
+    app:itemIconPadding="16dp"
+    app:itemTextAppearance="@style/TextAppearance.AppCompat.Medium" />
