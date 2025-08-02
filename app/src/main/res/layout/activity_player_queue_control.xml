@@ -153,140 +153,149 @@
             android:visibility="gone" />
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:id="@+id/playback_controls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="12dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:gravity="center_vertical"
+        android:weightSum="7"
         tools:ignore="RtlHardcoded">
 
         <ImageButton
             android:id="@+id/control_repeat"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_toLeftOf="@+id/control_backward"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:scaleType="fitXY"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_repeat"
             android:tint="?attr/colorAccent"
+            android:padding="8dp"
             tools:ignore="ContentDescription" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/control_backward"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_toLeftOf="@+id/control_fast_rewind"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_previous"
             android:tint="?attr/colorAccent"
+            android:padding="8dp"
             tools:ignore="ContentDescription" />
 
         <ImageButton
             android:id="@+id/control_fast_rewind"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_toLeftOf="@id/control_play_pause"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
             android:src="@drawable/exo_controls_rewind"
-            android:tint="?attr/colorAccent" />
-
-        <ImageButton
-            android:id="@+id/control_play_pause"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:focusable="true"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_pause"
             android:tint="?attr/colorAccent"
-            tools:ignore="ContentDescription" />
+            android:padding="8dp" />
 
-        <ProgressBar
-            android:id="@+id/control_progress_bar"
-            style="?android:attr/progressBarStyleLargeInverse"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_centerInParent="true"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:background="#00000000"
-            android:clickable="false"
-            android:indeterminate="true"
-            android:padding="2dp"
-            android:scaleType="fitCenter"
-            android:tint="?attr/colorAccent"
-            android:visibility="invisible"
-            tools:visibility="visible" />
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp">
 
+            <ImageButton
+                android:id="@+id/control_play_pause"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_pause"
+                android:tint="?attr/colorAccent"
+                android:padding="8dp"
+                tools:ignore="ContentDescription" />
+
+            <ProgressBar
+                android:id="@+id/control_progress_bar"
+                style="?android:attr/progressBarStyleLargeInverse"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#00000000"
+                android:clickable="false"
+                android:indeterminate="true"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:tint="?attr/colorAccent"
+                android:visibility="invisible"
+                tools:visibility="visible" />
+
+        </FrameLayout>
 
         <ImageButton
             android:id="@+id/control_fast_forward"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="5dp"
-            android:layout_toRightOf="@id/control_play_pause"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
             android:src="@drawable/exo_controls_fastforward"
-            android:tint="?attr/colorAccent" />
+            android:tint="?attr/colorAccent"
+            android:padding="8dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/control_forward"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="5dp"
-            android:layout_toRightOf="@+id/control_fast_forward"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_next"
             android:tint="?attr/colorAccent"
+            android:padding="8dp"
             tools:ignore="ContentDescription" />
 
         <ImageButton
             android:id="@+id/control_shuffle"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_centerVertical="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_toRightOf="@+id/control_forward"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:scaleType="fitXY"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_shuffle"
             android:tint="?attr/colorAccent"
+            android:padding="8dp"
             tools:ignore="ContentDescription" />
 
-    </RelativeLayout>
+    </LinearLayout>
 </RelativeLayout>

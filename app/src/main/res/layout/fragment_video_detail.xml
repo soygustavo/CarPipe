@@ -670,33 +670,35 @@
 
             <ImageButton
                 android:id="@+id/overlay_play_queue_button"
-                android:layout_width="40dp"
+                android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/title_activity_play_queue"
-                android:scaleType="center"
+                android:scaleType="fitCenter"
+                android:padding="12dp"
                 android:src="@drawable/ic_list"
                 tools:ignore="RtlHardcoded" />
 
             <ImageButton
                 android:id="@+id/overlay_play_pause_button"
-                android:layout_width="40dp"
+                android:layout_width="48dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/pause"
                 android:focusable="true"
                 android:focusedByDefault="true"
-                android:scaleType="center"
+                android:scaleType="fitCenter"
+                android:padding="12dp"
                 android:src="@drawable/ic_play_arrow" />
 
             <ImageButton
                 android:id="@+id/overlay_close_button"
-                android:layout_width="48dp"
+                android:layout_width="56dp"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackground"
                 android:contentDescription="@string/close"
-                android:paddingRight="8dp"
-                android:scaleType="center"
+                android:padding="12dp"
+                android:scaleType="fitCenter"
                 android:src="@drawable/ic_close"
                 tools:ignore="RtlSymmetry" />
 
