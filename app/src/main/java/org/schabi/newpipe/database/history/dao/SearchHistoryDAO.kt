@@ -1,52 +1,43 @@
-package org.schabi.newpipe.database.history.dao;
+/*
+ * SPDX-FileCopyrightText: 2017-2021 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.Nullable;
-import androidx.room.Dao;
-import androidx.room.Query;
+package org.schabi.newpipe.database.history.dao
 
-import org.schabi.newpipe.database.history.model.SearchHistoryEntry;
-
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
-
-import static org.schabi.newpipe.database.history.model.SearchHistoryEntry.CREATION_DATE;
-import static org.schabi.newpipe.database.history.model.SearchHistoryEntry.ID;
-import static org.schabi.newpipe.database.history.model.SearchHistoryEntry.SEARCH;
-import static org.schabi.newpipe.database.history.model.SearchHistoryEntry.SERVICE_ID;
-import static org.schabi.newpipe.database.history.model.SearchHistoryEntry.TABLE_NAME;
+import androidx.room.Dao
+import androidx.room.Query
+import io.reactivex.rxjava3.core.Flowable
+import org.schabi.newpipe.database.BasicDAO
+import org.schabi.newpipe.database.history.model.SearchHistoryEntry
 
 @Dao
-public interface SearchHistoryDAO extends HistoryDAO<SearchHistoryEntry> {
-    String ORDER_BY_CREATION_DATE = " ORDER BY " + CREATION_DATE + " DESC";
-    String ORDER_BY_MAX_CREATION_DATE = " ORDER BY MAX(" + CREATION_DATE + ") DESC";
+interface SearchHistoryDAO : BasicDAO<SearchHistoryEntry> {
 
-    @Query("SELECT * FROM " + TABLE_NAME
-            + " WHERE " + ID + " = (SELECT MAX(" + ID + ") FROM " + TABLE_NAME + ")")
-    @Nullable
-    SearchHistoryEntry getLatestEntry();
+    @get:Query("SELECT * FROM search_history WHERE id = (SELECT MAX(id) FROM search_history)")
+    val latestEntry: SearchHistoryEntry?
 
-    @Query("DELETE FROM " + TABLE_NAME)
-    @Override
-    int deleteAll();
+    @Query("DELETE FROM search_history")
+    override fun deleteAll(): Int
 
-    @Query("DELETE FROM " + TABLE_NAME + " WHERE " + SEARCH + " = :query")
-    int deleteAllWhereQuery(String query);
+    @Query("DELETE FROM search_history WHERE search = :query")
+    fun deleteAllWhereQuery(query: String): Int
 
-    @Query("SELECT * FROM " + TABLE_NAME + ORDER_BY_CREATION_DATE)
-    @Override
-    Flowable<List<SearchHistoryEntry>> getAll();
+    @Query("SELECT * FROM search_history ORDER BY creation_date DESC")
+    override fun getAll(): Flowable<List<SearchHistoryEntry>>
 
-    @Query("SELECT " + SEARCH + " FROM " + TABLE_NAME + " GROUP BY " + SEARCH
-            + ORDER_BY_MAX_CREATION_DATE + " LIMIT :limit")
-    Flowable<List<String>> getUniqueEntries(int limit);
+    @Query("SELECT search FROM search_history GROUP BY search ORDER BY MAX(creation_date) DESC LIMIT :limit")
+    fun getUniqueEntries(limit: Int): Flowable<MutableList<String>>
 
-    @Query("SELECT * FROM " + TABLE_NAME
-            + " WHERE " + SERVICE_ID + " = :serviceId" + ORDER_BY_CREATION_DATE)
-    @Override
-    Flowable<List<SearchHistoryEntry>> listByService(int serviceId);
+    @Query("SELECT * FROM search_history WHERE service_id = :serviceId ORDER BY creation_date DESC")
+    override fun listByService(serviceId: Int): Flowable<List<SearchHistoryEntry>>
 
-    @Query("SELECT " + SEARCH + " FROM " + TABLE_NAME + " WHERE " + SEARCH + " LIKE :query || '%'"
-            + " GROUP BY " + SEARCH + ORDER_BY_MAX_CREATION_DATE + " LIMIT :limit")
-    Flowable<List<String>> getSimilarEntries(String query, int limit);
+    @Query(
+        """
+        SELECT search FROM search_history WHERE search LIKE :query ||
+        '%' GROUP BY search ORDER BY MAX(creation_date) DESC LIMIT :limit
+        """
+    )
+    fun getSimilarEntries(query: String, limit: Int): Flowable<MutableList<String>>
 }

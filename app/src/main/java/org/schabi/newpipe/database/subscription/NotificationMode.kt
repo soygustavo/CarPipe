@@ -1,14 +1,18 @@
-package org.schabi.newpipe.database.subscription;
+/*
+ * SPDX-FileCopyrightText: 2021 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.IntDef;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+package org.schabi.newpipe.database.subscription
 
-@IntDef({NotificationMode.DISABLED, NotificationMode.ENABLED})
-@Retention(RetentionPolicy.SOURCE)
-public @interface NotificationMode {
+import androidx.annotation.IntDef
 
-    int DISABLED = 0;
-    int ENABLED = 1;
-    //other values reserved for the future
+@IntDef(NotificationMode.Companion.DISABLED, NotificationMode.Companion.ENABLED)
+@Retention(AnnotationRetention.SOURCE)
+annotation class NotificationMode {
+    companion object {
+        const val DISABLED = 0
+        const val ENABLED = 1 // other values reserved for the future
+    }
 }

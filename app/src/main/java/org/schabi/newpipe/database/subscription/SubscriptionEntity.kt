@@ -1,200 +1,87 @@
-package org.schabi.newpipe.database.subscription;
+/*
+ * SPDX-FileCopyrightText: 2017-2024 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
+package org.schabi.newpipe.database.subscription
 
-import org.schabi.newpipe.extractor.channel.ChannelInfo;
-import org.schabi.newpipe.extractor.channel.ChannelInfoItem;
-import org.schabi.newpipe.util.Constants;
-import org.schabi.newpipe.util.image.ImageStrategy;
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import org.schabi.newpipe.extractor.channel.ChannelInfo
+import org.schabi.newpipe.extractor.channel.ChannelInfoItem
+import org.schabi.newpipe.util.NO_SERVICE_ID
+import org.schabi.newpipe.util.image.ImageStrategy
 
-import static org.schabi.newpipe.database.subscription.SubscriptionEntity.SUBSCRIPTION_SERVICE_ID;
-import static org.schabi.newpipe.database.subscription.SubscriptionEntity.SUBSCRIPTION_TABLE;
-import static org.schabi.newpipe.database.subscription.SubscriptionEntity.SUBSCRIPTION_URL;
-
-@Entity(tableName = SUBSCRIPTION_TABLE,
-        indices = {@Index(value = {SUBSCRIPTION_SERVICE_ID, SUBSCRIPTION_URL}, unique = true)})
-public class SubscriptionEntity {
-    public static final String SUBSCRIPTION_UID = "uid";
-    public static final String SUBSCRIPTION_TABLE = "subscriptions";
-    public static final String SUBSCRIPTION_SERVICE_ID = "service_id";
-    public static final String SUBSCRIPTION_URL = "url";
-    public static final String SUBSCRIPTION_NAME = "name";
-    public static final String SUBSCRIPTION_AVATAR_URL = "avatar_url";
-    public static final String SUBSCRIPTION_SUBSCRIBER_COUNT = "subscriber_count";
-    public static final String SUBSCRIPTION_DESCRIPTION = "description";
-    public static final String SUBSCRIPTION_NOTIFICATION_MODE  = "notification_mode";
-
+@Entity(
+    tableName = SubscriptionEntity.Companion.SUBSCRIPTION_TABLE,
+    indices = [
+        Index(
+            value = [SubscriptionEntity.Companion.SUBSCRIPTION_SERVICE_ID, SubscriptionEntity.Companion.SUBSCRIPTION_URL],
+            unique = true
+        )
+    ]
+)
+data class SubscriptionEntity(
     @PrimaryKey(autoGenerate = true)
-    private long uid = 0;
+    var uid: Long = 0,
 
     @ColumnInfo(name = SUBSCRIPTION_SERVICE_ID)
-    private int serviceId = Constants.NO_SERVICE_ID;
+    var serviceId: Int = NO_SERVICE_ID,
 
     @ColumnInfo(name = SUBSCRIPTION_URL)
-    private String url;
+    var url: String? = null,
 
     @ColumnInfo(name = SUBSCRIPTION_NAME)
-    private String name;
+    var name: String? = null,
 
     @ColumnInfo(name = SUBSCRIPTION_AVATAR_URL)
-    private String avatarUrl;
+    var avatarUrl: String? = null,
 
     @ColumnInfo(name = SUBSCRIPTION_SUBSCRIBER_COUNT)
-    private Long subscriberCount;
+    var subscriberCount: Long? = null,
 
     @ColumnInfo(name = SUBSCRIPTION_DESCRIPTION)
-    private String description;
+    var description: String? = null,
 
+    @get:NotificationMode
     @ColumnInfo(name = SUBSCRIPTION_NOTIFICATION_MODE)
-    private int notificationMode;
-
+    var notificationMode: Int = 0
+) {
     @Ignore
-    public static SubscriptionEntity from(@NonNull final ChannelInfo info) {
-        final SubscriptionEntity result = new SubscriptionEntity();
-        result.setServiceId(info.getServiceId());
-        result.setUrl(info.getUrl());
-        result.setData(info.getName(), ImageStrategy.imageListToDbUrl(info.getAvatars()),
-                info.getDescription(), info.getSubscriberCount());
-        return result;
-    }
-
-    public long getUid() {
-        return uid;
-    }
-
-    public void setUid(final long uid) {
-        this.uid = uid;
-    }
-
-    public int getServiceId() {
-        return serviceId;
-    }
-
-    public void setServiceId(final int serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(final String url) {
-        this.url = url;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    @Nullable
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(@Nullable final String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public Long getSubscriberCount() {
-        return subscriberCount;
-    }
-
-    public void setSubscriberCount(final Long subscriberCount) {
-        this.subscriberCount = subscriberCount;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(final String description) {
-        this.description = description;
-    }
-
-    @NotificationMode
-    public int getNotificationMode() {
-        return notificationMode;
-    }
-
-    public void setNotificationMode(@NotificationMode final int notificationMode) {
-        this.notificationMode = notificationMode;
-    }
-
-    @Ignore
-    public void setData(final String n, final String au, final String d, final Long sc) {
-        this.setName(n);
-        this.setAvatarUrl(au);
-        this.setDescription(d);
-        this.setSubscriberCount(sc);
-    }
-
-    @Ignore
-    public ChannelInfoItem toChannelInfoItem() {
-        final ChannelInfoItem item = new ChannelInfoItem(getServiceId(), getUrl(), getName());
-        item.setThumbnails(ImageStrategy.dbUrlToImageList(getAvatarUrl()));
-        item.setSubscriberCount(getSubscriberCount());
-        item.setDescription(getDescription());
-        return item;
-    }
-
-
-    // TODO: Remove these generated methods by migrating this class to a data class from Kotlin.
-    @Override
-    @SuppressWarnings("EqualsReplaceableByObjectsCall")
-    public boolean equals(final Object o) {
-        if (this == o) {
-            return true;
+    fun toChannelInfoItem(): ChannelInfoItem {
+        return ChannelInfoItem(this.serviceId, this.url, this.name).apply {
+            thumbnails = ImageStrategy.dbUrlToImageList(this@SubscriptionEntity.avatarUrl)
+            subscriberCount = this@SubscriptionEntity.subscriberCount ?: -1
+            description = this@SubscriptionEntity.description
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final SubscriptionEntity that = (SubscriptionEntity) o;
-
-        if (uid != that.uid) {
-            return false;
-        }
-        if (serviceId != that.serviceId) {
-            return false;
-        }
-        if (!url.equals(that.url)) {
-            return false;
-        }
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-        if (avatarUrl != null ? !avatarUrl.equals(that.avatarUrl) : that.avatarUrl != null) {
-            return false;
-        }
-        if (subscriberCount != null
-                ? !subscriberCount.equals(that.subscriberCount)
-                : that.subscriberCount != null) {
-            return false;
-        }
-        return description != null
-                ? description.equals(that.description)
-                : that.description == null;
     }
 
-    @Override
-    public int hashCode() {
-        int result = (int) (uid ^ (uid >>> 32));
-        result = 31 * result + serviceId;
-        result = 31 * result + url.hashCode();
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (avatarUrl != null ? avatarUrl.hashCode() : 0);
-        result = 31 * result + (subscriberCount != null ? subscriberCount.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
+    companion object {
+        const val SUBSCRIPTION_UID: String = "uid"
+        const val SUBSCRIPTION_TABLE: String = "subscriptions"
+        const val SUBSCRIPTION_SERVICE_ID: String = "service_id"
+        const val SUBSCRIPTION_URL: String = "url"
+        const val SUBSCRIPTION_NAME: String = "name"
+        const val SUBSCRIPTION_AVATAR_URL: String = "avatar_url"
+        const val SUBSCRIPTION_SUBSCRIBER_COUNT: String = "subscriber_count"
+        const val SUBSCRIPTION_DESCRIPTION: String = "description"
+        const val SUBSCRIPTION_NOTIFICATION_MODE: String = "notification_mode"
+
+        @JvmStatic
+        @Ignore
+        fun from(info: ChannelInfo): SubscriptionEntity {
+            return SubscriptionEntity(
+                serviceId = info.serviceId,
+                url = info.url,
+                name = info.name,
+                avatarUrl = ImageStrategy.imageListToDbUrl(info.avatars),
+                description = info.description,
+                subscriberCount = info.subscriberCount
+            )
+        }
     }
 }

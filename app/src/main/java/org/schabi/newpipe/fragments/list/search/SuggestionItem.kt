@@ -1,32 +1,19 @@
-package org.schabi.newpipe.fragments.list.search;
+/*
+ * SPDX-FileCopyrightText: 2017-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.NonNull;
+package org.schabi.newpipe.fragments.list.search
 
-public class SuggestionItem {
-    final boolean fromHistory;
-    public final String query;
-
-    public SuggestionItem(final boolean fromHistory, final String query) {
-        this.fromHistory = fromHistory;
-        this.query = query;
-    }
-
-    @Override
-    public boolean equals(final Object o) {
-        if (o instanceof SuggestionItem) {
-            return query.equals(((SuggestionItem) o).query);
+class SuggestionItem(@JvmField val fromHistory: Boolean, @JvmField val query: String) {
+    override fun equals(other: Any?): Boolean {
+        if (other is SuggestionItem) {
+            return query == other.query
         }
-        return false;
+        return false
     }
 
-    @Override
-    public int hashCode() {
-        return query.hashCode();
-    }
+    override fun hashCode() = query.hashCode()
 
-    @NonNull
-    @Override
-    public String toString() {
-        return "[" + fromHistory + "→" + query + "]";
-    }
+    override fun toString() = "[$fromHistory→$query]"
 }

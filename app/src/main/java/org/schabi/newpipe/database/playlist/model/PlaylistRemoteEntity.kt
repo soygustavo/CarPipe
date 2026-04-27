@@ -1,191 +1,100 @@
-package org.schabi.newpipe.database.playlist.model;
+/*
+ * SPDX-FileCopyrightText: 2018-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import android.text.TextUtils;
+package org.schabi.newpipe.database.playlist.model
 
-import androidx.annotation.Nullable;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
+import android.text.TextUtils
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Ignore
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import org.schabi.newpipe.database.LocalItem.LocalItemType
+import org.schabi.newpipe.database.playlist.PlaylistLocalItem
+import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.Companion.REMOTE_PLAYLIST_SERVICE_ID
+import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.Companion.REMOTE_PLAYLIST_TABLE
+import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.Companion.REMOTE_PLAYLIST_URL
+import org.schabi.newpipe.extractor.playlist.PlaylistInfo
+import org.schabi.newpipe.util.NO_SERVICE_ID
+import org.schabi.newpipe.util.image.ImageStrategy
 
-import org.schabi.newpipe.database.playlist.PlaylistLocalItem;
-import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
-import org.schabi.newpipe.util.Constants;
-import org.schabi.newpipe.util.image.ImageStrategy;
-
-import static org.schabi.newpipe.database.LocalItem.LocalItemType.PLAYLIST_REMOTE_ITEM;
-import static org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.REMOTE_PLAYLIST_NAME;
-import static org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.REMOTE_PLAYLIST_SERVICE_ID;
-import static org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.REMOTE_PLAYLIST_TABLE;
-import static org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity.REMOTE_PLAYLIST_URL;
-
-@Entity(tableName = REMOTE_PLAYLIST_TABLE,
-        indices = {
-                @Index(value = {REMOTE_PLAYLIST_SERVICE_ID, REMOTE_PLAYLIST_URL}, unique = true)
-        })
-public class PlaylistRemoteEntity implements PlaylistLocalItem {
-    public static final String REMOTE_PLAYLIST_TABLE = "remote_playlists";
-    public static final String REMOTE_PLAYLIST_ID = "uid";
-    public static final String REMOTE_PLAYLIST_SERVICE_ID = "service_id";
-    public static final String REMOTE_PLAYLIST_NAME = "name";
-    public static final String REMOTE_PLAYLIST_URL = "url";
-    public static final String REMOTE_PLAYLIST_THUMBNAIL_URL = "thumbnail_url";
-    public static final String REMOTE_PLAYLIST_UPLOADER_NAME = "uploader";
-    public static final String REMOTE_PLAYLIST_DISPLAY_INDEX = "display_index";
-    public static final String REMOTE_PLAYLIST_STREAM_COUNT = "stream_count";
-
+@Entity(
+    tableName = REMOTE_PLAYLIST_TABLE,
+    indices = [
+        Index(
+            value = [REMOTE_PLAYLIST_SERVICE_ID, REMOTE_PLAYLIST_URL],
+            unique = true
+        )
+    ]
+)
+data class PlaylistRemoteEntity(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = REMOTE_PLAYLIST_ID)
-    private long uid = 0;
+    override var uid: Long = 0,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_SERVICE_ID)
-    private int serviceId = Constants.NO_SERVICE_ID;
+    val serviceId: Int = NO_SERVICE_ID,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_NAME)
-    private String name;
+    override val orderingName: String?,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_URL)
-    private String url;
+    val url: String?,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_THUMBNAIL_URL)
-    private String thumbnailUrl;
+    override val thumbnailUrl: String?,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_UPLOADER_NAME)
-    private String uploader;
+    val uploader: String?,
 
     @ColumnInfo(name = REMOTE_PLAYLIST_DISPLAY_INDEX)
-    private long displayIndex = -1; // Make sure the new item is on the top
+    override var displayIndex: Long = -1, // Make sure the new item is on the top
 
     @ColumnInfo(name = REMOTE_PLAYLIST_STREAM_COUNT)
-    private Long streamCount;
+    val streamCount: Long?
+) : PlaylistLocalItem {
 
-    public PlaylistRemoteEntity(final int serviceId, final String name, final String url,
-                                final String thumbnailUrl, final String uploader,
-                                final Long streamCount) {
-        this.serviceId = serviceId;
-        this.name = name;
-        this.url = url;
-        this.thumbnailUrl = thumbnailUrl;
-        this.uploader = uploader;
-        this.streamCount = streamCount;
-    }
+    constructor(playlistInfo: PlaylistInfo) : this(
+        serviceId = playlistInfo.serviceId,
+        orderingName = playlistInfo.name,
+        url = playlistInfo.url,
+        thumbnailUrl = ImageStrategy.imageListToDbUrl(
+            playlistInfo.thumbnails.ifEmpty { playlistInfo.uploaderAvatars }
+        ),
+        uploader = playlistInfo.uploaderName,
+        streamCount = playlistInfo.streamCount
+    )
 
+    override val localItemType: LocalItemType
+        get() = LocalItemType.PLAYLIST_REMOTE_ITEM
+
+    /**
+     * Returns boolean comparing the online playlist and the local copy.
+     * (False if info changed such as playlist name or track count)
+     */
     @Ignore
-    public PlaylistRemoteEntity(final int serviceId, final String name, final String url,
-                                final String thumbnailUrl, final String uploader,
-                                final long displayIndex, final Long streamCount) {
-        this.serviceId = serviceId;
-        this.name = name;
-        this.url = url;
-        this.thumbnailUrl = thumbnailUrl;
-        this.uploader = uploader;
-        this.displayIndex = displayIndex;
-        this.streamCount = streamCount;
+    fun isIdenticalTo(info: PlaylistInfo): Boolean {
+        return this.serviceId == info.serviceId && this.streamCount == info.streamCount &&
+            TextUtils.equals(this.orderingName, info.name) &&
+            TextUtils.equals(this.url, info.url) &&
+            // we want to update the local playlist data even when either the remote thumbnail
+            // URL changes, or the preferred image quality setting is changed by the user
+            TextUtils.equals(thumbnailUrl, ImageStrategy.imageListToDbUrl(info.thumbnails)) &&
+            TextUtils.equals(this.uploader, info.uploaderName)
     }
 
-    @Ignore
-    public PlaylistRemoteEntity(final PlaylistInfo info) {
-        this(info.getServiceId(), info.getName(), info.getUrl(),
-                // use uploader avatar when no thumbnail is available
-                ImageStrategy.imageListToDbUrl(info.getThumbnails().isEmpty()
-                        ? info.getUploaderAvatars() : info.getThumbnails()),
-                info.getUploaderName(), info.getStreamCount());
-    }
-
-    @Ignore
-    public boolean isIdenticalTo(final PlaylistInfo info) {
-        /*
-         * Returns boolean comparing the online playlist and the local copy.
-         * (False if info changed such as playlist name or track count)
-         */
-        return getServiceId() == info.getServiceId()
-                && getStreamCount() == info.getStreamCount()
-                && TextUtils.equals(getName(), info.getName())
-                && TextUtils.equals(getUrl(), info.getUrl())
-                // we want to update the local playlist data even when either the remote thumbnail
-                // URL changes, or the preferred image quality setting is changed by the user
-                && TextUtils.equals(getThumbnailUrl(),
-                ImageStrategy.imageListToDbUrl(info.getThumbnails()))
-                && TextUtils.equals(getUploader(), info.getUploaderName());
-    }
-
-    @Override
-    public long getUid() {
-        return uid;
-    }
-
-    public void setUid(final long uid) {
-        this.uid = uid;
-    }
-
-    public int getServiceId() {
-        return serviceId;
-    }
-
-    public void setServiceId(final int serviceId) {
-        this.serviceId = serviceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
-    }
-
-    @Nullable
-    @Override
-    public String getThumbnailUrl() {
-        return thumbnailUrl;
-    }
-
-    public void setThumbnailUrl(final String thumbnailUrl) {
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(final String url) {
-        this.url = url;
-    }
-
-    public String getUploader() {
-        return uploader;
-    }
-
-    public void setUploader(final String uploader) {
-        this.uploader = uploader;
-    }
-
-    @Override
-    public long getDisplayIndex() {
-        return displayIndex;
-    }
-
-    @Override
-    public void setDisplayIndex(final long displayIndex) {
-        this.displayIndex = displayIndex;
-    }
-
-    public Long getStreamCount() {
-        return streamCount;
-    }
-
-    public void setStreamCount(final Long streamCount) {
-        this.streamCount = streamCount;
-    }
-
-    @Override
-    public LocalItemType getLocalItemType() {
-        return PLAYLIST_REMOTE_ITEM;
-    }
-
-    @Override
-    public String getOrderingName() {
-        return name;
+    companion object {
+        const val REMOTE_PLAYLIST_TABLE = "remote_playlists"
+        const val REMOTE_PLAYLIST_ID = "uid"
+        const val REMOTE_PLAYLIST_SERVICE_ID = "service_id"
+        const val REMOTE_PLAYLIST_NAME = "name"
+        const val REMOTE_PLAYLIST_URL = "url"
+        const val REMOTE_PLAYLIST_THUMBNAIL_URL = "thumbnail_url"
+        const val REMOTE_PLAYLIST_UPLOADER_NAME = "uploader"
+        const val REMOTE_PLAYLIST_DISPLAY_INDEX = "display_index"
+        const val REMOTE_PLAYLIST_STREAM_COUNT = "stream_count"
     }
 }

@@ -1,69 +1,61 @@
-package org.schabi.newpipe.local.playlist;
+/*
+ * SPDX-FileCopyrightText: 2018-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import org.schabi.newpipe.database.AppDatabase;
-import org.schabi.newpipe.database.playlist.dao.PlaylistRemoteDAO;
-import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity;
-import org.schabi.newpipe.extractor.playlist.PlaylistInfo;
+package org.schabi.newpipe.local.playlist
 
-import java.util.List;
+import io.reactivex.rxjava3.core.Completable
+import io.reactivex.rxjava3.core.Flowable
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.schedulers.Schedulers
+import org.schabi.newpipe.database.AppDatabase
+import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity
+import org.schabi.newpipe.extractor.playlist.PlaylistInfo
 
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+class RemotePlaylistManager(private val database: AppDatabase) {
+    private val playlistRemoteTable = database.playlistRemoteDAO()
 
-public class RemotePlaylistManager {
+    val playlists: Flowable<MutableList<PlaylistRemoteEntity>>
+        get() = playlistRemoteTable.playlists.subscribeOn(Schedulers.io())
 
-    private final AppDatabase database;
-    private final PlaylistRemoteDAO playlistRemoteTable;
-
-    public RemotePlaylistManager(final AppDatabase db) {
-        database = db;
-        playlistRemoteTable = db.playlistRemoteDAO();
+    fun getPlaylist(playlistId: Long): Flowable<PlaylistRemoteEntity> {
+        return playlistRemoteTable.getPlaylist(playlistId).subscribeOn(Schedulers.io())
     }
 
-    public Flowable<List<PlaylistRemoteEntity>> getPlaylists() {
-        return playlistRemoteTable.getPlaylists().subscribeOn(Schedulers.io());
+    fun getPlaylist(info: PlaylistInfo): Flowable<MutableList<PlaylistRemoteEntity>> {
+        return playlistRemoteTable.getPlaylist(info.serviceId.toLong(), info.url)
+            .subscribeOn(Schedulers.io())
     }
 
-    public Flowable<PlaylistRemoteEntity> getPlaylist(final long playlistId) {
-        return playlistRemoteTable.getPlaylist(playlistId).subscribeOn(Schedulers.io());
+    fun deletePlaylist(playlistId: Long): Single<Int> {
+        return Single.fromCallable { playlistRemoteTable.deletePlaylist(playlistId) }
+            .subscribeOn(Schedulers.io())
     }
 
-    public Flowable<List<PlaylistRemoteEntity>> getPlaylist(final PlaylistInfo info) {
-        return playlistRemoteTable.getPlaylist(info.getServiceId(), info.getUrl())
-                .subscribeOn(Schedulers.io());
-    }
-
-    public Single<Integer> deletePlaylist(final long playlistId) {
-        return Single.fromCallable(() -> playlistRemoteTable.deletePlaylist(playlistId))
-                .subscribeOn(Schedulers.io());
-    }
-
-    public Completable updatePlaylists(final List<PlaylistRemoteEntity> updateItems,
-                                       final List<Long> deletedItems) {
-        return Completable.fromRunnable(() -> database.runInTransaction(() -> {
-            for (final Long uid: deletedItems) {
-                playlistRemoteTable.deletePlaylist(uid);
+    fun updatePlaylists(
+        updateItems: List<PlaylistRemoteEntity>,
+        deletedItems: List<Long>
+    ): Completable {
+        return Completable.fromRunnable {
+            database.runInTransaction {
+                deletedItems.forEach { playlistRemoteTable.deletePlaylist(it) }
+                updateItems.forEach { playlistRemoteTable.upsert(it) }
             }
-            for (final PlaylistRemoteEntity item: updateItems) {
-                playlistRemoteTable.upsert(item);
-            }
-        })).subscribeOn(Schedulers.io());
+        }.subscribeOn(Schedulers.io())
     }
 
-    public Single<Long> onBookmark(final PlaylistInfo playlistInfo) {
-        return Single.fromCallable(() -> {
-            final PlaylistRemoteEntity playlist = new PlaylistRemoteEntity(playlistInfo);
-            return playlistRemoteTable.upsert(playlist);
-        }).subscribeOn(Schedulers.io());
+    fun onBookmark(playlistInfo: PlaylistInfo): Single<Long> {
+        return Single.fromCallable {
+            val playlist = PlaylistRemoteEntity(playlistInfo)
+            playlistRemoteTable.upsert(playlist)
+        }.subscribeOn(Schedulers.io())
     }
 
-    public Single<Integer> onUpdate(final long playlistId, final PlaylistInfo playlistInfo) {
-        return Single.fromCallable(() -> {
-            final PlaylistRemoteEntity playlist = new PlaylistRemoteEntity(playlistInfo);
-            playlist.setUid(playlistId);
-            return playlistRemoteTable.update(playlist);
-        }).subscribeOn(Schedulers.io());
+    fun onUpdate(playlistId: Long, playlistInfo: PlaylistInfo): Single<Int> {
+        return Single.fromCallable {
+            val playlist = PlaylistRemoteEntity(playlistInfo).apply { uid = playlistId }
+            playlistRemoteTable.update(playlist)
+        }.subscribeOn(Schedulers.io())
     }
 }

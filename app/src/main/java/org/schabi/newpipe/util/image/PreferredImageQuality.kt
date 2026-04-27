@@ -1,39 +1,38 @@
-package org.schabi.newpipe.util.image;
+/*
+ * SPDX-FileCopyrightText: 2023-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import android.content.Context;
+package org.schabi.newpipe.util.image
 
-import org.schabi.newpipe.R;
-import org.schabi.newpipe.extractor.Image;
+import android.content.Context
+import org.schabi.newpipe.R
+import org.schabi.newpipe.extractor.Image.ResolutionLevel
 
-public enum PreferredImageQuality {
+enum class PreferredImageQuality {
     NONE,
     LOW,
     MEDIUM,
     HIGH;
 
-    public static PreferredImageQuality fromPreferenceKey(final Context context, final String key) {
-        if (context.getString(R.string.image_quality_none_key).equals(key)) {
-            return NONE;
-        } else if (context.getString(R.string.image_quality_low_key).equals(key)) {
-            return LOW;
-        } else if (context.getString(R.string.image_quality_high_key).equals(key)) {
-            return HIGH;
-        } else {
-            return MEDIUM; // default to medium
+    fun toResolutionLevel(): ResolutionLevel {
+        return when (this) {
+            LOW -> ResolutionLevel.LOW
+            MEDIUM -> ResolutionLevel.MEDIUM
+            HIGH -> ResolutionLevel.HIGH
+            NONE -> ResolutionLevel.UNKNOWN
         }
     }
 
-    public Image.ResolutionLevel toResolutionLevel() {
-        switch (this) {
-            case LOW:
-                return Image.ResolutionLevel.LOW;
-            case MEDIUM:
-                return Image.ResolutionLevel.MEDIUM;
-            case HIGH:
-                return Image.ResolutionLevel.HIGH;
-            default:
-            case NONE:
-                return Image.ResolutionLevel.UNKNOWN;
+    companion object {
+        @JvmStatic
+        fun fromPreferenceKey(context: Context, key: String?): PreferredImageQuality {
+            return when (key) {
+                context.getString(R.string.image_quality_none_key) -> NONE
+                context.getString(R.string.image_quality_low_key) -> LOW
+                context.getString(R.string.image_quality_high_key) -> HIGH
+                else -> MEDIUM // default to medium
+            }
         }
     }
 }

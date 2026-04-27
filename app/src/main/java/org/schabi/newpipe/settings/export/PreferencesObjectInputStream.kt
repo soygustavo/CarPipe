@@ -1,34 +1,41 @@
-package org.schabi.newpipe.settings.export;
+/*
+ * SPDX-FileCopyrightText: 2024-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamClass;
-import java.util.Set;
+package org.schabi.newpipe.settings.export
+
+import java.io.IOException
+import java.io.InputStream
+import java.io.ObjectInputStream
+import java.io.ObjectStreamClass
 
 /**
- * An {@link ObjectInputStream} that only allows preferences-related types to be deserialized, to
+ * An [ObjectInputStream] that only allows preferences-related types to be deserialized, to
  * prevent injections. The only allowed types are: all primitive types, all boxed primitive types,
  * null, strings. HashMap, HashSet and arrays of previously defined types are also allowed. Sources:
- * <a href="https://wiki.sei.cmu.edu/confluence/display/java/SER00-J.+Enable+serialization+compatibility+during+class+evolution">
- * cmu.edu
- * </a>,
- * <a href="https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html#harden-your-own-javaioobjectinputstream">
- * OWASP cheatsheet
- * </a>,
- * <a href="https://commons.apache.org/proper/commons-io/apidocs/src-html/org/apache/commons/io/serialization/ValidatingObjectInputStream.html#line-118">
- * Apache's {@code ValidatingObjectInputStream}
- * </a>
+ * [cmu.edu](https://wiki.sei.cmu.edu/confluence/display/java/SER00-J.+Enable+serialization+compatibility+during+class+evolution) * ,
+ * [OWASP cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html#harden-your-own-javaioobjectinputstream) * ,
+ * [Apache's `ValidatingObjectInputStream`](https://commons.apache.org/proper/commons-io/apidocs/src-html/org/apache/commons/io/serialization/ValidatingObjectInputStream.html#line-118) *
  */
-public class PreferencesObjectInputStream extends ObjectInputStream {
+class PreferencesObjectInputStream(stream: InputStream) : ObjectInputStream(stream) {
+    @Throws(ClassNotFoundException::class, IOException::class)
+    override fun resolveClass(desc: ObjectStreamClass): Class<*> {
+        if (desc.name in CLASS_WHITELIST) {
+            return super.resolveClass(desc)
+        } else {
+            throw ClassNotFoundException("Class not allowed: $desc.name")
+        }
+    }
 
-    /**
-     * Primitive types, strings and other built-in types do not pass through resolveClass() but
-     * instead have a custom encoding; see
-     * <a href="https://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html#10152">
-     * official docs</a>.
-     */
-    private static final Set<String> CLASS_WHITELIST = Set.of(
+    companion object {
+        /**
+         * Primitive types, strings and other built-in types do not pass through resolveClass() but
+         * instead have a custom encoding; see
+         * [
+         * official docs](https://docs.oracle.com/javase/6/docs/platform/serialization/spec/protocol.html#10152).
+         */
+        private val CLASS_WHITELIST = setOf<String>(
             "java.lang.Boolean",
             "java.lang.Byte",
             "java.lang.Character",
@@ -40,19 +47,6 @@ public class PreferencesObjectInputStream extends ObjectInputStream {
             "java.lang.Void",
             "java.util.HashMap",
             "java.util.HashSet"
-    );
-
-    public PreferencesObjectInputStream(final InputStream in) throws IOException {
-        super(in);
-    }
-
-    @Override
-    protected Class<?> resolveClass(final ObjectStreamClass desc)
-            throws ClassNotFoundException, IOException {
-        if (CLASS_WHITELIST.contains(desc.getName())) {
-            return super.resolveClass(desc);
-        } else {
-            throw new ClassNotFoundException("Class not allowed: " + desc.getName());
-        }
+        )
     }
 }

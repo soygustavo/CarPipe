@@ -1,53 +1,48 @@
-package org.schabi.newpipe.database.playlist.dao;
+/*
+ * SPDX-FileCopyrightText: 2018-2022 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.room.Dao;
-import androidx.room.Query;
-import androidx.room.Transaction;
+package org.schabi.newpipe.database.playlist.dao
 
-import org.schabi.newpipe.database.BasicDAO;
-import org.schabi.newpipe.database.playlist.model.PlaylistEntity;
-
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
-
-import static org.schabi.newpipe.database.playlist.model.PlaylistEntity.PLAYLIST_ID;
-import static org.schabi.newpipe.database.playlist.model.PlaylistEntity.PLAYLIST_TABLE;
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.Transaction
+import io.reactivex.rxjava3.core.Flowable
+import org.schabi.newpipe.database.BasicDAO
+import org.schabi.newpipe.database.playlist.model.PlaylistEntity
 
 @Dao
-public interface PlaylistDAO extends BasicDAO<PlaylistEntity> {
-    @Override
-    @Query("SELECT * FROM " + PLAYLIST_TABLE)
-    Flowable<List<PlaylistEntity>> getAll();
+interface PlaylistDAO : BasicDAO<PlaylistEntity> {
 
-    @Override
-    @Query("DELETE FROM " + PLAYLIST_TABLE)
-    int deleteAll();
+    @Query("SELECT * FROM playlists")
+    override fun getAll(): Flowable<List<PlaylistEntity>>
 
-    @Override
-    default Flowable<List<PlaylistEntity>> listByService(final int serviceId) {
-        throw new UnsupportedOperationException();
+    @Query("DELETE FROM playlists")
+    override fun deleteAll(): Int
+
+    override fun listByService(serviceId: Int): Flowable<List<PlaylistEntity>> {
+        throw UnsupportedOperationException()
     }
 
-    @Query("SELECT * FROM " + PLAYLIST_TABLE + " WHERE " + PLAYLIST_ID + " = :playlistId")
-    Flowable<List<PlaylistEntity>> getPlaylist(long playlistId);
+    @Query("SELECT * FROM playlists WHERE uid = :playlistId")
+    fun getPlaylist(playlistId: Long): Flowable<MutableList<PlaylistEntity>>
 
-    @Query("DELETE FROM " + PLAYLIST_TABLE + " WHERE " + PLAYLIST_ID + " = :playlistId")
-    int deletePlaylist(long playlistId);
+    @Query("DELETE FROM playlists WHERE uid = :playlistId")
+    fun deletePlaylist(playlistId: Long): Int
 
-    @Query("SELECT COUNT(*) FROM " + PLAYLIST_TABLE)
-    Flowable<Long> getCount();
+    @get:Query("SELECT COUNT(*) FROM playlists")
+    val count: Flowable<Long>
 
     @Transaction
-    default long upsertPlaylist(final PlaylistEntity playlist) {
-        final long playlistId = playlist.getUid();
-
-        if (playlistId == -1) {
+    fun upsertPlaylist(playlist: PlaylistEntity): Long {
+        if (playlist.uid == -1L) {
             // This situation is probably impossible.
-            return insert(playlist);
+            return insert(playlist)
         } else {
-            update(playlist);
-            return playlistId;
+            update(playlist)
+            return playlist.uid
         }
     }
 }

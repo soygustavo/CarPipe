@@ -1,48 +1,45 @@
-package org.schabi.newpipe.database.stream.dao;
+/*
+ * SPDX-FileCopyrightText: 2018-2021 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.room.Dao;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-import androidx.room.Transaction;
+package org.schabi.newpipe.database.stream.dao
 
-import org.schabi.newpipe.database.BasicDAO;
-import org.schabi.newpipe.database.stream.model.StreamStateEntity;
-
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
-
-import static org.schabi.newpipe.database.stream.model.StreamStateEntity.JOIN_STREAM_ID;
-import static org.schabi.newpipe.database.stream.model.StreamStateEntity.STREAM_STATE_TABLE;
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import io.reactivex.rxjava3.core.Flowable
+import org.schabi.newpipe.database.BasicDAO
+import org.schabi.newpipe.database.stream.model.StreamStateEntity
 
 @Dao
-public interface StreamStateDAO extends BasicDAO<StreamStateEntity> {
-    @Override
-    @Query("SELECT * FROM " + STREAM_STATE_TABLE)
-    Flowable<List<StreamStateEntity>> getAll();
+interface StreamStateDAO : BasicDAO<StreamStateEntity> {
 
-    @Override
-    @Query("DELETE FROM " + STREAM_STATE_TABLE)
-    int deleteAll();
+    @Query("SELECT * FROM " + StreamStateEntity.STREAM_STATE_TABLE)
+    override fun getAll(): Flowable<List<StreamStateEntity>>
 
-    @Override
-    default Flowable<List<StreamStateEntity>> listByService(final int serviceId) {
-        throw new UnsupportedOperationException();
+    @Query("DELETE FROM " + StreamStateEntity.STREAM_STATE_TABLE)
+    override fun deleteAll(): Int
+
+    override fun listByService(serviceId: Int): Flowable<List<StreamStateEntity>> {
+        throw UnsupportedOperationException()
     }
 
-    @Query("SELECT * FROM " + STREAM_STATE_TABLE + " WHERE " + JOIN_STREAM_ID + " = :streamId")
-    Flowable<List<StreamStateEntity>> getState(long streamId);
+    @Query("SELECT * FROM " + StreamStateEntity.STREAM_STATE_TABLE + " WHERE " + StreamStateEntity.JOIN_STREAM_ID + " = :streamId")
+    fun getState(streamId: Long): Flowable<MutableList<StreamStateEntity>>
 
-    @Query("DELETE FROM " + STREAM_STATE_TABLE + " WHERE " + JOIN_STREAM_ID + " = :streamId")
-    int deleteState(long streamId);
+    @Query("DELETE FROM " + StreamStateEntity.STREAM_STATE_TABLE + " WHERE " + StreamStateEntity.JOIN_STREAM_ID + " = :streamId")
+    fun deleteState(streamId: Long): Int
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void silentInsertInternal(StreamStateEntity streamState);
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
+    fun silentInsertInternal(streamState: StreamStateEntity)
 
     @Transaction
-    default long upsert(final StreamStateEntity stream) {
-        silentInsertInternal(stream);
-        return update(stream);
+    fun upsert(stream: StreamStateEntity): Long {
+        silentInsertInternal(stream)
+        return update(stream).toLong()
     }
 }

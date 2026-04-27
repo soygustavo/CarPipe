@@ -1,324 +1,282 @@
-package org.schabi.newpipe.error;
-
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.IntentCompat;
-
-import com.grack.nanojson.JsonWriter;
-
-import org.schabi.newpipe.BuildConfig;
-import org.schabi.newpipe.R;
-import org.schabi.newpipe.databinding.ActivityErrorBinding;
-import org.schabi.newpipe.util.Localization;
-import org.schabi.newpipe.util.ThemeHelper;
-import org.schabi.newpipe.util.external_communication.ShareUtils;
-
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 /*
- * Created by Christian Schabesberger on 24.10.15.
- *
- * Copyright (C) Christian Schabesberger 2016 <chris.schabesberger@mailbox.org>
- * ErrorActivity.java is part of NewPipe.
- *
- * NewPipe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * <
- * NewPipe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * <
- * You should have received a copy of the GNU General Public License
- * along with NewPipe.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2015-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
+
+package org.schabi.newpipe.error
+
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.IntentCompat
+import androidx.core.net.toUri
+import com.grack.nanojson.JsonWriter
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import org.schabi.newpipe.BuildConfig
+import org.schabi.newpipe.R
+import org.schabi.newpipe.databinding.ActivityErrorBinding
+import org.schabi.newpipe.util.Localization
+import org.schabi.newpipe.util.ThemeHelper
+import org.schabi.newpipe.util.external_communication.ShareUtils
+import org.schabi.newpipe.util.text.setTextWithLinks
 
 /**
- * This activity is used to show error details and allow reporting them in various ways. Use {@link
- * ErrorUtil#openActivity(Context, ErrorInfo)} to correctly open this activity.
+ * This activity is used to show error details and allow reporting them in various ways.
+ * Use [ErrorUtil.openActivity] to correctly open this activity.
  */
-public class ErrorActivity extends AppCompatActivity {
-    // LOG TAGS
-    public static final String TAG = ErrorActivity.class.toString();
-    // BUNDLE TAGS
-    public static final String ERROR_INFO = "error_info";
+class ErrorActivity : AppCompatActivity() {
+    private lateinit var errorInfo: ErrorInfo
+    private lateinit var currentTimeStamp: String
 
-    public static final String ERROR_EMAIL_ADDRESS = "crashreport@newpipe.schabi.org";
-    public static final String ERROR_EMAIL_SUBJECT = "Exception in ";
+    private lateinit var binding: ActivityErrorBinding
 
-    public static final String ERROR_GITHUB_ISSUE_URL =
-            "https://github.com/TeamNewPipe/NewPipe/issues";
+    private val contentCountryString: String
+        get() = Localization.getPreferredContentCountry(this).countryCode
 
-    private ErrorInfo errorInfo;
-    private String currentTimeStamp;
+    private val contentLanguageString: String
+        get() = Localization.getPreferredLocalization(this).localizationCode
 
-    private ActivityErrorBinding activityErrorBinding;
+    private val appLanguage: String
+        get() = Localization.getAppLocale().toString()
 
-
-    ////////////////////////////////////////////////////////////////////////
-    // Activity lifecycle
-    ////////////////////////////////////////////////////////////////////////
-
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        ThemeHelper.setDayNightMode(this);
-        ThemeHelper.setTheme(this);
-
-        activityErrorBinding = ActivityErrorBinding.inflate(getLayoutInflater());
-        setContentView(activityErrorBinding.getRoot());
-
-        final Intent intent = getIntent();
-
-        setSupportActionBar(activityErrorBinding.toolbarLayout.toolbar);
-
-        final ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setTitle(R.string.error_report_title);
-            actionBar.setDisplayShowTitleEnabled(true);
+    private val osString: String
+        get() {
+            val name = System.getProperty("os.name")!!
+            val osBase = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Build.VERSION.BASE_OS.ifEmpty { "Android" }
+            } else {
+                "Android"
+            }
+            return "$name $osBase ${Build.VERSION.RELEASE} - ${Build.VERSION.SDK_INT}"
         }
 
-        errorInfo = IntentCompat.getParcelableExtra(intent, ERROR_INFO, ErrorInfo.class);
+    private val errorEmailSubject: String
+        get() = "$ERROR_EMAIL_SUBJECT ${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}"
+
+    // /////////////////////////////////////////////////////////////////////
+    // Activity lifecycle
+    // /////////////////////////////////////////////////////////////////////
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        ThemeHelper.setDayNightMode(this)
+        ThemeHelper.setTheme(this)
+
+        binding = ActivityErrorBinding.inflate(layoutInflater)
+        setContentView(binding.getRoot())
+
+        setSupportActionBar(binding.toolbarLayout.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setTitle(R.string.error_report_title)
+            setDisplayShowTitleEnabled(true)
+        }
+
+        errorInfo = IntentCompat.getParcelableExtra(intent, ERROR_INFO, ErrorInfo::class.java)!!
 
         // important add guru meditation
-        addGuruMeditation();
+        addGuruMeditation()
         // print current time, as zoned ISO8601 timestamp
-        final ZonedDateTime now = ZonedDateTime.now();
-        currentTimeStamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        currentTimeStamp = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
-        activityErrorBinding.errorReportEmailButton.setOnClickListener(v ->
-                openPrivacyPolicyDialog(this, "EMAIL"));
+        binding.errorReportEmailButton.setOnClickListener { _ ->
+            openPrivacyPolicyDialog(this, "EMAIL")
+        }
 
-        activityErrorBinding.errorReportCopyButton.setOnClickListener(v ->
-                ShareUtils.copyToClipboard(this, buildMarkdown()));
+        binding.errorReportCopyButton.setOnClickListener { _ ->
+            ShareUtils.copyToClipboard(this, buildMarkdown())
+        }
 
-        activityErrorBinding.errorReportGitHubButton.setOnClickListener(v ->
-                openPrivacyPolicyDialog(this, "GITHUB"));
+        binding.errorReportGitHubButton.setOnClickListener { _ ->
+            openPrivacyPolicyDialog(this, "GITHUB")
+        }
 
         // normal bugreport
-        buildInfo(errorInfo);
-        activityErrorBinding.errorMessageView.setText(errorInfo.getMessageStringId());
-        activityErrorBinding.errorView.setText(formErrorText(errorInfo.getStackTraces()));
+        buildInfo(errorInfo)
+        binding.errorMessageView.setTextWithLinks(errorInfo.getMessage(this))
+        binding.errorView.text = formErrorText(errorInfo.stackTraces)
 
         // print stack trace once again for debugging:
-        for (final String e : errorInfo.getStackTraces()) {
-            Log.e(TAG, e);
+        errorInfo.stackTraces.forEach { Log.e(TAG, it) }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.error_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+
+            R.id.menu_item_share_error -> {
+                ShareUtils.shareText(
+                    applicationContext,
+                    getString(R.string.error_report_title),
+                    buildJson()
+                )
+                true
+            }
+
+            else -> false
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(final Menu menu) {
-        final MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.error_menu, menu);
-        return true;
+    private fun openPrivacyPolicyDialog(context: Context, action: String) {
+        AlertDialog.Builder(context)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setTitle(R.string.privacy_policy_title)
+            .setMessage(R.string.start_accept_privacy_policy)
+            .setCancelable(false)
+            .setNeutralButton(R.string.read_privacy_policy) { _, _ ->
+                ShareUtils.openUrlInApp(context, context.getString(R.string.privacy_policy_url))
+            }
+            .setPositiveButton(R.string.accept) { _, _ ->
+                if (action == "EMAIL") { // send on email
+                    val intent = Intent(Intent.ACTION_SENDTO)
+                        .setData("mailto:".toUri()) // only email apps should handle this
+                        .putExtra(Intent.EXTRA_EMAIL, arrayOf(ERROR_EMAIL_ADDRESS))
+                        .putExtra(Intent.EXTRA_SUBJECT, errorEmailSubject)
+                        .putExtra(Intent.EXTRA_TEXT, buildJson())
+                    ShareUtils.openIntentInApp(context, intent)
+                } else if (action == "GITHUB") { // open the NewPipe issue page on GitHub
+                    ShareUtils.openUrlInApp(this, ERROR_GITHUB_ISSUE_URL)
+                }
+            }
+            .setNegativeButton(R.string.decline, null)
+            .show()
     }
 
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-            case R.id.menu_item_share_error:
-                ShareUtils.shareText(getApplicationContext(),
-                        getString(R.string.error_report_title), buildJson());
-                return true;
-            default:
-                return false;
-        }
+    private fun formErrorText(stacktrace: Array<String>): String {
+        val separator = "-------------------------------------"
+        return stacktrace.joinToString(separator + "\n", separator + "\n", separator)
     }
 
-    private void openPrivacyPolicyDialog(final Context context, final String action) {
-        new AlertDialog.Builder(context)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setTitle(R.string.privacy_policy_title)
-                .setMessage(R.string.start_accept_privacy_policy)
-                .setCancelable(false)
-                .setNeutralButton(R.string.read_privacy_policy, (dialog, which) ->
-                        ShareUtils.openUrlInApp(context,
-                                context.getString(R.string.privacy_policy_url)))
-                .setPositiveButton(R.string.accept, (dialog, which) -> {
-                    if (action.equals("EMAIL")) { // send on email
-                        final Intent i = new Intent(Intent.ACTION_SENDTO)
-                                .setData(Uri.parse("mailto:")) // only email apps should handle this
-                                .putExtra(Intent.EXTRA_EMAIL, new String[]{ERROR_EMAIL_ADDRESS})
-                                .putExtra(Intent.EXTRA_SUBJECT, ERROR_EMAIL_SUBJECT
-                                        + getString(R.string.app_name) + " "
-                                        + BuildConfig.VERSION_NAME)
-                                .putExtra(Intent.EXTRA_TEXT, buildJson());
-                        ShareUtils.openIntentInApp(context, i);
-                    } else if (action.equals("GITHUB")) { // open the NewPipe issue page on GitHub
-                        ShareUtils.openUrlInApp(this, ERROR_GITHUB_ISSUE_URL);
-                    }
-                })
-                .setNegativeButton(R.string.decline, null)
-                .show();
+    private fun buildInfo(info: ErrorInfo) {
+        binding.errorInfoLabelsView.text = getString(R.string.info_labels)
+
+        val text = info.userAction.message + "\n" +
+            info.request + "\n" +
+            contentLanguageString + "\n" +
+            contentCountryString + "\n" +
+            appLanguage + "\n" +
+            info.getServiceName() + "\n" +
+            currentTimeStamp + "\n" +
+            packageName + "\n" +
+            BuildConfig.VERSION_NAME + "\n" +
+            osString
+
+        binding.errorInfosView.text = text
     }
 
-    private String formErrorText(final String[] el) {
-        final String separator = "-------------------------------------";
-        return Arrays.stream(el)
-                .collect(Collectors.joining(separator + "\n", separator + "\n", separator));
-    }
-
-    private void buildInfo(final ErrorInfo info) {
-        String text = "";
-
-        activityErrorBinding.errorInfoLabelsView.setText(getString(R.string.info_labels)
-                .replace("\\n", "\n"));
-
-        text += getUserActionString(info.getUserAction()) + "\n"
-                + info.getRequest() + "\n"
-                + getContentLanguageString() + "\n"
-                + getContentCountryString() + "\n"
-                + getAppLanguage() + "\n"
-                + info.getServiceName() + "\n"
-                + currentTimeStamp + "\n"
-                + getPackageName() + "\n"
-                + BuildConfig.VERSION_NAME + "\n"
-                + getOsString();
-
-        activityErrorBinding.errorInfosView.setText(text);
-    }
-
-    private String buildJson() {
+    private fun buildJson(): String {
         try {
             return JsonWriter.string()
-                    .object()
-                    .value("user_action", getUserActionString(errorInfo.getUserAction()))
-                    .value("request", errorInfo.getRequest())
-                    .value("content_language", getContentLanguageString())
-                    .value("content_country", getContentCountryString())
-                    .value("app_language", getAppLanguage())
-                    .value("service", errorInfo.getServiceName())
-                    .value("package", getPackageName())
-                    .value("version", BuildConfig.VERSION_NAME)
-                    .value("os", getOsString())
-                    .value("time", currentTimeStamp)
-                    .array("exceptions", Arrays.asList(errorInfo.getStackTraces()))
-                    .value("user_comment", activityErrorBinding.errorCommentBox.getText()
-                            .toString())
-                    .end()
-                    .done();
-        } catch (final Throwable e) {
-            Log.e(TAG, "Error while erroring: Could not build json");
-            e.printStackTrace();
+                .`object`()
+                .value("user_action", errorInfo.userAction.message)
+                .value("request", errorInfo.request)
+                .value("content_language", contentLanguageString)
+                .value("content_country", contentCountryString)
+                .value("app_language", appLanguage)
+                .value("service", errorInfo.getServiceName())
+                .value("package", packageName)
+                .value("version", BuildConfig.VERSION_NAME)
+                .value("os", osString)
+                .value("time", currentTimeStamp)
+                .array("exceptions", errorInfo.stackTraces.toList())
+                .value("user_comment", binding.errorCommentBox.getText().toString())
+                .end()
+                .done()
+        } catch (exception: Exception) {
+            Log.e(TAG, "Error while erroring: Could not build json", exception)
         }
 
-        return "";
+        return ""
     }
 
-    private String buildMarkdown() {
+    private fun buildMarkdown(): String {
         try {
-            final StringBuilder htmlErrorReport = new StringBuilder();
-
-            final String userComment = activityErrorBinding.errorCommentBox.getText().toString();
-            if (!userComment.isEmpty()) {
-                htmlErrorReport.append(userComment).append("\n");
-            }
-
-            // basic error info
-            htmlErrorReport
-                    .append("## Exception")
-                    .append("\n* __User Action:__ ")
-                        .append(getUserActionString(errorInfo.getUserAction()))
-                    .append("\n* __Request:__ ").append(errorInfo.getRequest())
-                    .append("\n* __Content Country:__ ").append(getContentCountryString())
-                    .append("\n* __Content Language:__ ").append(getContentLanguageString())
-                    .append("\n* __App Language:__ ").append(getAppLanguage())
-                    .append("\n* __Service:__ ").append(errorInfo.getServiceName())
-                    .append("\n* __Timestamp:__ ").append(currentTimeStamp)
-                    .append("\n* __Package:__ ").append(getPackageName())
-                    .append("\n* __Service:__ ").append(errorInfo.getServiceName())
-                    .append("\n* __Version:__ ").append(BuildConfig.VERSION_NAME)
-                    .append("\n* __OS:__ ").append(getOsString()).append("\n");
-
-
-            // Collapse all logs to a single paragraph when there are more than one
-            // to keep the GitHub issue clean.
-            if (errorInfo.getStackTraces().length > 1) {
-                htmlErrorReport
-                        .append("<details><summary><b>Exceptions (")
-                        .append(errorInfo.getStackTraces().length)
-                        .append(")</b></summary><p>\n");
-            }
-
-            // add the logs
-            for (int i = 0; i < errorInfo.getStackTraces().length; i++) {
-                htmlErrorReport.append("<details><summary><b>Crash log ");
-                if (errorInfo.getStackTraces().length > 1) {
-                    htmlErrorReport.append(i + 1);
+            return buildString(1024) {
+                val userComment = binding.errorCommentBox.text.toString()
+                if (userComment.isNotEmpty()) {
+                    appendLine(userComment)
                 }
-                htmlErrorReport.append("</b>")
-                        .append("</summary><p>\n")
-                        .append("\n```\n").append(errorInfo.getStackTraces()[i]).append("\n```\n")
-                        .append("</details>\n");
-            }
 
-            // make sure to close everything
-            if (errorInfo.getStackTraces().length > 1) {
-                htmlErrorReport.append("</p></details>\n");
+                // basic error info
+                appendLine("## Exception")
+                appendLine("* __User Action:__ ${errorInfo.userAction.message}")
+                appendLine("* __Request:__ ${errorInfo.request}")
+                appendLine("* __Content Country:__ $contentCountryString")
+                appendLine("* __Content Language:__ $contentLanguageString")
+                appendLine("* __App Language:__ $appLanguage")
+                appendLine("* __Service:__ ${errorInfo.getServiceName()}")
+                appendLine("* __Timestamp:__ $currentTimeStamp")
+                appendLine("* __Package:__ $packageName")
+                appendLine("* __Service:__ ${errorInfo.getServiceName()}")
+                appendLine("* __Version:__ ${BuildConfig.VERSION_NAME}")
+                appendLine("* __OS:__ $osString")
+
+                // Collapse all logs to a single paragraph when there are more than one
+                // to keep the GitHub issue clean.
+                if (errorInfo.stackTraces.size > 1) {
+                    append("<details><summary><b>Exceptions (")
+                    append(errorInfo.stackTraces.size)
+                    append(")</b></summary><p>\n")
+                }
+
+                // add the logs
+                errorInfo.stackTraces.forEachIndexed { index, stacktrace ->
+                    append("<details><summary><b>Crash log ")
+                    if (errorInfo.stackTraces.size > 1) {
+                        append(index + 1)
+                    }
+                    append("</b>")
+                    append("</summary><p>\n")
+                    append("\n```\n${stacktrace}\n```\n")
+                    append("</details>\n")
+                }
+
+                // make sure to close everything
+                if (errorInfo.stackTraces.size > 1) {
+                    append("</p></details>\n")
+                }
+
+                append("<hr>\n")
             }
-            htmlErrorReport.append("<hr>\n");
-            return htmlErrorReport.toString();
-        } catch (final Throwable e) {
-            Log.e(TAG, "Error while erroring: Could not build markdown");
-            e.printStackTrace();
-            return "";
+        } catch (exception: Exception) {
+            Log.e(TAG, "Error while erroring: Could not build markdown", exception)
+            return ""
         }
     }
 
-    private String getUserActionString(final UserAction userAction) {
-        if (userAction == null) {
-            return "Your description is in another castle.";
-        } else {
-            return userAction.getMessage();
-        }
+    private fun addGuruMeditation() {
+        // just an easter egg
+        var text = binding.errorSorryView.text.toString()
+        text += "\n" + getString(R.string.guru_meditation)
+        binding.errorSorryView.text = text
     }
 
-    private String getContentCountryString() {
-        return Localization.getPreferredContentCountry(this).getCountryCode();
-    }
+    companion object {
+        // LOG TAGS
+        private val TAG = ErrorActivity::class.java.toString()
 
-    private String getContentLanguageString() {
-        return Localization.getPreferredLocalization(this).getLocalizationCode();
-    }
+        // BUNDLE TAGS
+        const val ERROR_INFO = "error_info"
 
-    private String getAppLanguage() {
-        return Localization.getAppLocale().toString();
-    }
+        private const val ERROR_EMAIL_ADDRESS = "crashreport@newpipe.schabi.org"
+        private const val ERROR_EMAIL_SUBJECT = "Exception in "
 
-    private String getOsString() {
-        final String osBase = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                ? Build.VERSION.BASE_OS : "Android";
-        return System.getProperty("os.name")
-                + " " + (osBase.isEmpty() ? "Android" : osBase)
-                + " " + Build.VERSION.RELEASE
-                + " - " + Build.VERSION.SDK_INT;
-    }
-
-    private void addGuruMeditation() {
-        //just an easter egg
-        String text = activityErrorBinding.errorSorryView.getText().toString();
-        text += "\n" + getString(R.string.guru_meditation);
-        activityErrorBinding.errorSorryView.setText(text);
+        private const val ERROR_GITHUB_ISSUE_URL = "https://github.com/TeamNewPipe/NewPipe/issues"
     }
 }

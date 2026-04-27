@@ -1,100 +1,52 @@
-package org.schabi.newpipe.util;
-
-import android.content.Context;
-
-import org.schabi.newpipe.R;
-
-/**
- * Created by Christian Schabesberger on 28.09.17.
- * KioskTranslator.java is part of NewPipe.
- * <p>
- * NewPipe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * </p>
- * <p>
- * NewPipe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * </p>
- * <p>
- * You should have received a copy of the GNU General Public License
- * along with NewPipe.  If not, see <http://www.gnu.org/licenses/>.
- * </p>
+/*
+ * SPDX-FileCopyrightText: 2017-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-public final class KioskTranslator {
-    private KioskTranslator() { }
+package org.schabi.newpipe.util
 
-    public static String getTranslatedKioskName(final String kioskId, final Context c) {
-        switch (kioskId) {
-            case "Trending":
-                return c.getString(R.string.trending);
-            case "Top 50":
-                return c.getString(R.string.top_50);
-            case "New & hot":
-                return c.getString(R.string.new_and_hot);
-            case "Local":
-                return c.getString(R.string.local);
-            case "Recently added":
-                return c.getString(R.string.recently_added);
-            case "Most liked":
-                return c.getString(R.string.most_liked);
-            case "conferences":
-                return c.getString(R.string.conferences);
-            case "recent":
-                return c.getString(R.string.recent);
-            case "live":
-                return c.getString(R.string.duration_live);
-            case "Featured":
-                return c.getString(R.string.featured);
-            case "Radio":
-                return c.getString(R.string.radio);
-            case "trending_gaming":
-                return c.getString(R.string.trending_gaming);
-            case "trending_music":
-                return c.getString(R.string.trending_music);
-            case "trending_movies_and_shows":
-                return c.getString(R.string.trending_movies);
-            case "trending_podcasts_episodes":
-                return c.getString(R.string.trending_podcasts);
-            default:
-                return kioskId;
+import android.content.Context
+import org.schabi.newpipe.R
+
+object KioskTranslator {
+    @JvmStatic
+    fun getTranslatedKioskName(kioskId: String, context: Context): String {
+        return when (kioskId) {
+            "Trending" -> context.getString(R.string.trending)
+            "Top 50" -> context.getString(R.string.top_50)
+            "New & hot" -> context.getString(R.string.new_and_hot)
+            "Local" -> context.getString(R.string.local)
+            "Recently added" -> context.getString(R.string.recently_added)
+            "Most liked" -> context.getString(R.string.most_liked)
+            "conferences" -> context.getString(R.string.conferences)
+            "recent" -> context.getString(R.string.recent)
+            "live" -> context.getString(R.string.duration_live)
+            "Featured" -> context.getString(R.string.featured)
+            "Radio" -> context.getString(R.string.radio)
+            "trending_gaming" -> context.getString(R.string.trending_gaming)
+            "trending_music" -> context.getString(R.string.trending_music)
+            "trending_movies_and_shows" -> context.getString(R.string.trending_movies)
+            "trending_podcasts_episodes" -> context.getString(R.string.trending_podcasts)
+            else -> kioskId
         }
     }
 
-    public static int getKioskIcon(final String kioskId) {
-        switch (kioskId) {
-            case "Trending":
-            case "Top 50":
-            case "New & hot":
-            case "conferences":
-                return R.drawable.ic_whatshot;
-            case "Local":
-                return R.drawable.ic_home;
-            case "Recently added":
-            case "recent":
-                return R.drawable.ic_add_circle_outline;
-            case "Most liked":
-                return R.drawable.ic_thumb_up;
-            case "live":
-                return R.drawable.ic_live_tv;
-            case "Featured":
-                return R.drawable.ic_stars;
-            case "Radio":
-                return R.drawable.ic_radio;
-            case "trending_gaming":
-                return R.drawable.ic_videogame_asset;
-            case "trending_music":
-                return R.drawable.ic_music_note;
-            case "trending_movies_and_shows":
-                return R.drawable.ic_movie;
-            case "trending_podcasts_episodes":
-                return R.drawable.ic_podcasts;
-            default:
-                return 0;
+    @JvmStatic
+    fun getKioskIcon(kioskId: String): Int {
+        return when (kioskId) {
+            "Trending", "Top 50", "New & hot", "conferences" -> R.drawable.ic_whatshot
+            "Local" -> R.drawable.ic_home
+            "Recently added", "recent" -> R.drawable.ic_add_circle_outline
+            "Most liked" -> R.drawable.ic_thumb_up
+            "live" -> R.drawable.ic_live_tv
+            "Featured" -> R.drawable.ic_stars
+            "Radio" -> R.drawable.ic_radio
+            "trending_gaming" -> R.drawable.ic_videogame_asset
+            "trending_music" -> R.drawable.ic_music_note
+            "trending_movies_and_shows" -> R.drawable.ic_movie
+            "trending_podcasts_episodes" -> R.drawable.ic_podcasts
+            else -> 0
         }
     }
 }

@@ -1,102 +1,39 @@
-package org.schabi.newpipe.settings.preferencesearch;
+/*
+ * SPDX-FileCopyrightText: 2022-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.NonNull;
-import androidx.annotation.XmlRes;
+package org.schabi.newpipe.settings.preferencesearch
 
-import java.util.List;
-import java.util.Objects;
+import androidx.annotation.XmlRes
 
 /**
  * Represents a preference-item inside the search.
+ *
+ * @param key Key of the setting/preference. E.g. used inside [android.content.SharedPreferences].
+ * @param title Title of the setting, e.g. 'Default resolution' or 'Show higher resolutions'.
+ * @param summary Summary of the setting, e.g. '480p' or 'Only some devices can play 2k/4k'.
+ * @param entries Possible entries of the setting, e.g. 480p,720p,...
+ * @param breadcrumbs Breadcrumbs - a hint where the setting is located e.g. 'Video and Audio > Player'
+ * @param searchIndexItemResId The xml-resource where this item was found/built from.
  */
-public class PreferenceSearchItem {
-    /**
-     * Key of the setting/preference. E.g. used inside {@link android.content.SharedPreferences}.
-     */
-    @NonNull
-    private final String key;
-    /**
-     * Title of the setting, e.g. 'Default resolution' or 'Show higher resolutions'.
-     */
-    @NonNull
-    private final String title;
-    /**
-     * Summary of the setting, e.g. '480p' or 'Only some devices can play 2k/4k'.
-     */
-    @NonNull
-    private final String summary;
-    /**
-     * Possible entries of the setting, e.g. 480p,720p,...
-     */
-    @NonNull
-    private final String entries;
-    /**
-     *  Breadcrumbs - a hint where the setting is located e.g. 'Video and Audio > Player'
-     */
-    @NonNull
-    private final String breadcrumbs;
-    /**
-     * The xml-resource where this item was found/built from.
-     */
-    @XmlRes
-    private final int searchIndexItemResId;
 
-    public PreferenceSearchItem(
-            @NonNull final String key,
-            @NonNull final String title,
-            @NonNull final String summary,
-            @NonNull final String entries,
-            @NonNull final String breadcrumbs,
-            @XmlRes final int searchIndexItemResId
-    ) {
-        this.key = Objects.requireNonNull(key);
-        this.title = Objects.requireNonNull(title);
-        this.summary = Objects.requireNonNull(summary);
-        this.entries = Objects.requireNonNull(entries);
-        this.breadcrumbs = Objects.requireNonNull(breadcrumbs);
-        this.searchIndexItemResId = searchIndexItemResId;
+data class PreferenceSearchItem(
+    val key: String,
+    val title: String,
+    val summary: String,
+    val entries: String,
+    val breadcrumbs: String,
+    @XmlRes val searchIndexItemResId: Int
+) {
+    val allRelevantSearchFields: List<String>
+        get() = listOf(title, summary, entries, breadcrumbs)
+
+    fun hasData(): Boolean {
+        return !key.isEmpty() && !title.isEmpty()
     }
 
-    @NonNull
-    public String getKey() {
-        return key;
-    }
-
-    @NonNull
-    public String getTitle() {
-        return title;
-    }
-
-    @NonNull
-    public String getSummary() {
-        return summary;
-    }
-
-    @NonNull
-    public String getEntries() {
-        return entries;
-    }
-
-    @NonNull
-    public String getBreadcrumbs() {
-        return breadcrumbs;
-    }
-
-    public int getSearchIndexItemResId() {
-        return searchIndexItemResId;
-    }
-
-    boolean hasData() {
-        return !key.isEmpty() && !title.isEmpty();
-    }
-
-    public List<String> getAllRelevantSearchFields() {
-        return List.of(getTitle(), getSummary(), getEntries(), getBreadcrumbs());
-    }
-
-    @NonNull
-    @Override
-    public String toString() {
-        return "PreferenceItem: " + title + " " + summary + " " + key;
+    override fun toString(): String {
+        return "PreferenceItem: $title $summary $key"
     }
 }

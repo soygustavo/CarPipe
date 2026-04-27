@@ -1,93 +1,74 @@
-package org.schabi.newpipe.fragments.list.search;
+/*
+ * SPDX-FileCopyrightText: 2017-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
+package org.schabi.newpipe.fragments.list.search
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.DiffUtil;
-import androidx.recyclerview.widget.ListAdapter;
-import androidx.recyclerview.widget.RecyclerView;
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import org.schabi.newpipe.R
+import org.schabi.newpipe.databinding.ItemSearchSuggestionBinding
+import org.schabi.newpipe.fragments.list.search.SuggestionListAdapter.SuggestionItemHolder
 
-import org.schabi.newpipe.R;
-import org.schabi.newpipe.databinding.ItemSearchSuggestionBinding;
+class SuggestionListAdapter :
+    ListAdapter<SuggestionItem, SuggestionItemHolder>(SuggestionItemCallback()) {
 
-public class SuggestionListAdapter
-        extends ListAdapter<SuggestionItem, SuggestionListAdapter.SuggestionItemHolder> {
-    private OnSuggestionItemSelected listener;
+    var listener: OnSuggestionItemSelected? = null
 
-    public SuggestionListAdapter() {
-        super(new SuggestionItemCallback());
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SuggestionItemHolder {
+        return SuggestionItemHolder(
+            ItemSearchSuggestionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        )
     }
 
-    public void setListener(final OnSuggestionItemSelected listener) {
-        this.listener = listener;
-    }
-
-    @NonNull
-    @Override
-    public SuggestionItemHolder onCreateViewHolder(@NonNull final ViewGroup parent,
-                                                   final int viewType) {
-        return new SuggestionItemHolder(ItemSearchSuggestionBinding
-                .inflate(LayoutInflater.from(parent.getContext()), parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(final SuggestionItemHolder holder, final int position) {
-        final SuggestionItem currentItem = getItem(position);
-        holder.updateFrom(currentItem);
-        holder.itemBinding.suggestionSearch.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSuggestionItemSelected(currentItem);
-            }
-        });
-        holder.itemBinding.suggestionSearch.setOnLongClickListener(v -> {
-            if (listener != null) {
-                listener.onSuggestionItemLongClick(currentItem);
-            }
-            return true;
-        });
-        holder.itemBinding.suggestionInsert.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSuggestionItemInserted(currentItem);
-            }
-        });
-    }
-
-    public interface OnSuggestionItemSelected {
-        void onSuggestionItemSelected(SuggestionItem item);
-
-        void onSuggestionItemInserted(SuggestionItem item);
-
-        void onSuggestionItemLongClick(SuggestionItem item);
-    }
-
-    public static final class SuggestionItemHolder extends RecyclerView.ViewHolder {
-        private final ItemSearchSuggestionBinding itemBinding;
-
-        private SuggestionItemHolder(final ItemSearchSuggestionBinding binding) {
-            super(binding.getRoot());
-            this.itemBinding = binding;
+    override fun onBindViewHolder(holder: SuggestionItemHolder, position: Int) {
+        val currentItem = getItem(position)
+        holder.updateFrom(currentItem)
+        holder.binding.suggestionSearch.setOnClickListener {
+            listener?.onSuggestionItemSelected(currentItem)
         }
-
-        private void updateFrom(final SuggestionItem item) {
-            itemBinding.itemSuggestionIcon.setImageResource(item.fromHistory ? R.drawable.ic_history
-                    : R.drawable.ic_search);
-            itemBinding.itemSuggestionQuery.setText(item.query);
+        holder.binding.suggestionSearch.setOnLongClickListener {
+            listener?.onSuggestionItemLongClick(currentItem)
+            true
+        }
+        holder.binding.suggestionInsert.setOnClickListener {
+            listener?.onSuggestionItemInserted(currentItem)
         }
     }
 
-    private static class SuggestionItemCallback extends DiffUtil.ItemCallback<SuggestionItem> {
-        @Override
-        public boolean areItemsTheSame(@NonNull final SuggestionItem oldItem,
-                                       @NonNull final SuggestionItem newItem) {
-            return oldItem.fromHistory == newItem.fromHistory
-                    && oldItem.query.equals(newItem.query);
+    interface OnSuggestionItemSelected {
+        fun onSuggestionItemSelected(item: SuggestionItem)
+
+        fun onSuggestionItemInserted(item: SuggestionItem)
+
+        fun onSuggestionItemLongClick(item: SuggestionItem)
+    }
+
+    class SuggestionItemHolder(val binding: ItemSearchSuggestionBinding) :
+        RecyclerView.ViewHolder(binding.getRoot()) {
+        fun updateFrom(item: SuggestionItem) {
+            binding.itemSuggestionIcon.setImageResource(
+                if (item.fromHistory) {
+                    R.drawable.ic_history
+                } else {
+                    R.drawable.ic_search
+                }
+            )
+            binding.itemSuggestionQuery.text = item.query
+        }
+    }
+
+    private class SuggestionItemCallback : DiffUtil.ItemCallback<SuggestionItem>() {
+        override fun areItemsTheSame(oldItem: SuggestionItem, newItem: SuggestionItem): Boolean {
+            return oldItem.fromHistory == newItem.fromHistory && oldItem.query == newItem.query
         }
 
-        @Override
-        public boolean areContentsTheSame(@NonNull final SuggestionItem oldItem,
-                                          @NonNull final SuggestionItem newItem) {
-            return true; // items' contents never change; the list of items themselves does
+        override fun areContentsTheSame(oldItem: SuggestionItem, newItem: SuggestionItem): Boolean {
+            return true // items' contents never change; the list of items themselves does
         }
     }
 }

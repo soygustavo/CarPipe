@@ -1,89 +1,61 @@
-package org.schabi.newpipe.database.history.dao;
+/*
+ * SPDX-FileCopyrightText: 2018-2022 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.Nullable;
-import androidx.room.Dao;
-import androidx.room.Query;
-import androidx.room.RewriteQueriesToDropUnusedColumns;
+package org.schabi.newpipe.database.history.dao
 
-import org.schabi.newpipe.database.history.model.StreamHistoryEntity;
-import org.schabi.newpipe.database.history.model.StreamHistoryEntry;
-import org.schabi.newpipe.database.stream.StreamStatisticsEntry;
-
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
-
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.JOIN_STREAM_ID;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.STREAM_ACCESS_DATE;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.STREAM_HISTORY_TABLE;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.STREAM_REPEAT_COUNT;
-import static org.schabi.newpipe.database.stream.StreamStatisticsEntry.STREAM_LATEST_DATE;
-import static org.schabi.newpipe.database.stream.StreamStatisticsEntry.STREAM_WATCH_COUNT;
-import static org.schabi.newpipe.database.stream.model.StreamEntity.STREAM_ID;
-import static org.schabi.newpipe.database.stream.model.StreamEntity.STREAM_TABLE;
-import static org.schabi.newpipe.database.stream.model.StreamStateEntity.JOIN_STREAM_ID_ALIAS;
-import static org.schabi.newpipe.database.stream.model.StreamStateEntity.STREAM_PROGRESS_MILLIS;
-import static org.schabi.newpipe.database.stream.model.StreamStateEntity.STREAM_STATE_TABLE;
+import androidx.room.Dao
+import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
+import io.reactivex.rxjava3.core.Flowable
+import org.schabi.newpipe.database.BasicDAO
+import org.schabi.newpipe.database.history.model.StreamHistoryEntity
+import org.schabi.newpipe.database.history.model.StreamHistoryEntry
+import org.schabi.newpipe.database.stream.StreamStatisticsEntry
 
 @Dao
-public abstract class StreamHistoryDAO implements HistoryDAO<StreamHistoryEntity> {
-    @Query("SELECT * FROM " + STREAM_HISTORY_TABLE
-            + " WHERE " + STREAM_ACCESS_DATE + " = "
-            + "(SELECT MAX(" + STREAM_ACCESS_DATE + ") FROM " + STREAM_HISTORY_TABLE + ")")
-    @Override
-    @Nullable
-    public abstract StreamHistoryEntity getLatestEntry();
+abstract class StreamHistoryDAO : BasicDAO<StreamHistoryEntity> {
 
-    @Override
-    @Query("SELECT * FROM " + STREAM_HISTORY_TABLE)
-    public abstract Flowable<List<StreamHistoryEntity>> getAll();
+    @Query("SELECT * FROM stream_history")
+    abstract override fun getAll(): Flowable<List<StreamHistoryEntity>>
 
-    @Override
-    @Query("DELETE FROM " + STREAM_HISTORY_TABLE)
-    public abstract int deleteAll();
+    @Query("DELETE FROM stream_history")
+    abstract override fun deleteAll(): Int
 
-    @Override
-    public Flowable<List<StreamHistoryEntity>> listByService(final int serviceId) {
-        throw new UnsupportedOperationException();
+    override fun listByService(serviceId: Int): Flowable<List<StreamHistoryEntity>> {
+        throw UnsupportedOperationException()
     }
 
-    @Query("SELECT * FROM " + STREAM_TABLE
-            + " INNER JOIN " + STREAM_HISTORY_TABLE
-            + " ON " + STREAM_ID + " = " + JOIN_STREAM_ID
-            + " ORDER BY " + STREAM_ACCESS_DATE + " DESC")
-    public abstract Flowable<List<StreamHistoryEntry>> getHistory();
+    @get:Query("SELECT * FROM streams INNER JOIN stream_history ON uid = stream_id ORDER BY access_date DESC")
+    abstract val history: Flowable<MutableList<StreamHistoryEntry>>
 
+    @get:Query("SELECT * FROM streams INNER JOIN stream_history ON uid = stream_id ORDER BY uid ASC")
+    abstract val historySortedById: Flowable<MutableList<StreamHistoryEntry>>
 
-    @Query("SELECT * FROM " + STREAM_TABLE
-            + " INNER JOIN " + STREAM_HISTORY_TABLE
-            + " ON " + STREAM_ID + " = " + JOIN_STREAM_ID
-            + " ORDER BY " + STREAM_ID + " ASC")
-    public abstract Flowable<List<StreamHistoryEntry>> getHistorySortedById();
+    @Query("SELECT * FROM stream_history WHERE stream_id = :streamId ORDER BY access_date DESC LIMIT 1")
+    abstract fun getLatestEntry(streamId: Long): StreamHistoryEntity?
 
-    @Query("SELECT * FROM " + STREAM_HISTORY_TABLE + " WHERE " + JOIN_STREAM_ID
-            + " = :streamId ORDER BY " + STREAM_ACCESS_DATE + " DESC LIMIT 1")
-    @Nullable
-    public abstract StreamHistoryEntity getLatestEntry(long streamId);
+    @Query("DELETE FROM stream_history WHERE stream_id = :streamId")
+    abstract fun deleteStreamHistory(streamId: Long): Int
 
-    @Query("DELETE FROM " + STREAM_HISTORY_TABLE + " WHERE " + JOIN_STREAM_ID + " = :streamId")
-    public abstract int deleteStreamHistory(long streamId);
-
+    // Select the latest entry and watch count for each stream id on history table
     @RewriteQueriesToDropUnusedColumns
-    @Query("SELECT * FROM " + STREAM_TABLE
+    @Query(
+        """
+        SELECT * FROM streams
 
-            // Select the latest entry and watch count for each stream id on history table
-            + " INNER JOIN "
-            + "(SELECT " + JOIN_STREAM_ID + ", "
-            + "  MAX(" + STREAM_ACCESS_DATE + ") AS " + STREAM_LATEST_DATE + ", "
-            + "  SUM(" + STREAM_REPEAT_COUNT + ") AS " + STREAM_WATCH_COUNT
-            + " FROM " + STREAM_HISTORY_TABLE + " GROUP BY " + JOIN_STREAM_ID + ")"
+        INNER JOIN (
+            SELECT stream_id, MAX(access_date) AS latestAccess, SUM(repeat_count) AS watchCount
+            FROM stream_history
+            GROUP BY stream_id
+        )
+        ON uid = stream_id
 
-            + " ON " + STREAM_ID + " = " + JOIN_STREAM_ID
-
-            + " LEFT JOIN "
-            + "(SELECT " + JOIN_STREAM_ID + " AS " + JOIN_STREAM_ID_ALIAS + ", "
-            + STREAM_PROGRESS_MILLIS
-            + " FROM " + STREAM_STATE_TABLE + " )"
-            + " ON " + STREAM_ID + " = " + JOIN_STREAM_ID_ALIAS)
-    public abstract Flowable<List<StreamStatisticsEntry>> getStatistics();
+        LEFT JOIN (SELECT stream_id AS stream_id_alias, progress_time FROM stream_state )
+        ON uid = stream_id_alias
+        """
+    )
+    abstract fun getStatistics(): Flowable<MutableList<StreamStatisticsEntry>>
 }

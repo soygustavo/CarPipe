@@ -1,81 +1,56 @@
-package org.schabi.newpipe.database.history.model;
+/*
+ * SPDX-FileCopyrightText: 2018-2022 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.NonNull;
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
+package org.schabi.newpipe.database.history.model
 
-import org.schabi.newpipe.database.stream.model.StreamEntity;
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
+import java.time.OffsetDateTime
+import org.schabi.newpipe.database.history.model.StreamHistoryEntity.Companion.JOIN_STREAM_ID
+import org.schabi.newpipe.database.history.model.StreamHistoryEntity.Companion.STREAM_ACCESS_DATE
+import org.schabi.newpipe.database.history.model.StreamHistoryEntity.Companion.STREAM_HISTORY_TABLE
+import org.schabi.newpipe.database.stream.model.StreamEntity
+import org.schabi.newpipe.database.stream.model.StreamEntity.Companion.STREAM_ID
 
-import java.time.OffsetDateTime;
-
-import static androidx.room.ForeignKey.CASCADE;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.JOIN_STREAM_ID;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.STREAM_ACCESS_DATE;
-import static org.schabi.newpipe.database.history.model.StreamHistoryEntity.STREAM_HISTORY_TABLE;
-
-@Entity(tableName = STREAM_HISTORY_TABLE,
-        primaryKeys = {JOIN_STREAM_ID, STREAM_ACCESS_DATE},
-        // No need to index for timestamp as they will almost always be unique
-        indices = {@Index(value = {JOIN_STREAM_ID})},
-        foreignKeys = {
-                @ForeignKey(entity = StreamEntity.class,
-                        parentColumns = StreamEntity.STREAM_ID,
-                        childColumns = JOIN_STREAM_ID,
-                        onDelete = CASCADE, onUpdate = CASCADE)
-        })
-public class StreamHistoryEntity {
-    public static final String STREAM_HISTORY_TABLE = "stream_history";
-    public static final String JOIN_STREAM_ID = "stream_id";
-    public static final String STREAM_ACCESS_DATE = "access_date";
-    public static final String STREAM_REPEAT_COUNT = "repeat_count";
-
+/**
+ * @param streamUid the stream id this history item will refer to
+ * @param accessDate the last time the stream was accessed
+ * @param repeatCount the total number of views this stream received
+ */
+@Entity(
+    tableName = STREAM_HISTORY_TABLE,
+    primaryKeys = [JOIN_STREAM_ID, STREAM_ACCESS_DATE],
+    indices = [Index(value = [JOIN_STREAM_ID])],
+    foreignKeys = [
+        ForeignKey(
+            entity = StreamEntity::class,
+            parentColumns = arrayOf(STREAM_ID),
+            childColumns = arrayOf(JOIN_STREAM_ID),
+            onDelete = CASCADE,
+            onUpdate = CASCADE
+        )
+    ]
+)
+data class StreamHistoryEntity(
     @ColumnInfo(name = JOIN_STREAM_ID)
-    private long streamUid;
+    val streamUid: Long,
 
-    @NonNull
     @ColumnInfo(name = STREAM_ACCESS_DATE)
-    private OffsetDateTime accessDate;
+    var accessDate: OffsetDateTime,
 
     @ColumnInfo(name = STREAM_REPEAT_COUNT)
-    private long repeatCount;
-
-    /**
-     * @param streamUid the stream id this history item will refer to
-     * @param accessDate the last time the stream was accessed
-     * @param repeatCount the total number of views this stream received
-     */
-    public StreamHistoryEntity(final long streamUid,
-                               @NonNull final OffsetDateTime accessDate,
-                               final long repeatCount) {
-        this.streamUid = streamUid;
-        this.accessDate = accessDate;
-        this.repeatCount = repeatCount;
-    }
-
-    public long getStreamUid() {
-        return streamUid;
-    }
-
-    public void setStreamUid(final long streamUid) {
-        this.streamUid = streamUid;
-    }
-
-    @NonNull
-    public OffsetDateTime getAccessDate() {
-        return accessDate;
-    }
-
-    public void setAccessDate(@NonNull final OffsetDateTime accessDate) {
-        this.accessDate = accessDate;
-    }
-
-    public long getRepeatCount() {
-        return repeatCount;
-    }
-
-    public void setRepeatCount(final long repeatCount) {
-        this.repeatCount = repeatCount;
+    var repeatCount: Long
+) {
+    companion object {
+        const val STREAM_HISTORY_TABLE: String = "stream_history"
+        const val STREAM_ACCESS_DATE: String = "access_date"
+        const val JOIN_STREAM_ID: String = "stream_id"
+        const val STREAM_REPEAT_COUNT: String = "repeat_count"
     }
 }

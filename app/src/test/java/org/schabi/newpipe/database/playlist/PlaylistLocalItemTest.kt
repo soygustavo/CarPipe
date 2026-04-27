@@ -1,106 +1,102 @@
-package org.schabi.newpipe.database.playlist;
+/*
+ * SPDX-FileCopyrightText: 2022-2024 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+package org.schabi.newpipe.database.playlist
 
-import org.junit.Test;
-import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity;
-import org.schabi.newpipe.local.bookmark.MergedPlaylistManager;
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.schabi.newpipe.database.playlist.model.PlaylistRemoteEntity
+import org.schabi.newpipe.local.bookmark.MergedPlaylistManager
 
-import java.util.ArrayList;
-import java.util.List;
+class PlaylistLocalItemTest {
 
-public class PlaylistLocalItemTest {
     @Test
-    public void emptyPlaylists() {
-        final List<PlaylistMetadataEntry> localPlaylists = new ArrayList<>();
-        final List<PlaylistRemoteEntity> remotePlaylists = new ArrayList<>();
-        final List<PlaylistLocalItem> mergedPlaylists =
-                MergedPlaylistManager.merge(localPlaylists, remotePlaylists);
-
-        assertEquals(0, mergedPlaylists.size());
+    fun emptyPlaylists() {
+        val localPlaylists = listOf<PlaylistMetadataEntry?>()
+        val remotePlaylists = listOf<PlaylistRemoteEntity?>()
+        val mergedPlaylists = MergedPlaylistManager.merge(localPlaylists, remotePlaylists)
+        assertEquals(0, mergedPlaylists.size)
     }
 
     @Test
-    public void onlyLocalPlaylists() {
-        final List<PlaylistMetadataEntry> localPlaylists = new ArrayList<>();
-        final List<PlaylistRemoteEntity> remotePlaylists = new ArrayList<>();
-        localPlaylists.add(new PlaylistMetadataEntry(1, "name1", "", false, -1, 0, 1));
-        localPlaylists.add(new PlaylistMetadataEntry(2, "name2", "", false, -1, 1, 1));
-        localPlaylists.add(new PlaylistMetadataEntry(3, "name3", "", false, -1, 3, 1));
-        final List<PlaylistLocalItem> mergedPlaylists =
-                MergedPlaylistManager.merge(localPlaylists, remotePlaylists);
+    fun onlyLocalPlaylists() {
+        val localPlaylists = listOf<PlaylistMetadataEntry?>(
+            PlaylistMetadataEntry(1, "name1", "", 0, false, -1, 1),
+            PlaylistMetadataEntry(2, "name2", "", 1, false, -1, 1),
+            PlaylistMetadataEntry(3, "name3", "", 3, false, -1, 1)
+        )
+        val remotePlaylists = listOf<PlaylistRemoteEntity?>()
+        val mergedPlaylists = MergedPlaylistManager.merge(localPlaylists, remotePlaylists)
 
-        assertEquals(3, mergedPlaylists.size());
-        assertEquals(0, mergedPlaylists.get(0).getDisplayIndex());
-        assertEquals(1, mergedPlaylists.get(1).getDisplayIndex());
-        assertEquals(3, mergedPlaylists.get(2).getDisplayIndex());
+        assertEquals(3, mergedPlaylists.size)
+        assertEquals(0L, mergedPlaylists[0]!!.displayIndex)
+        assertEquals(1L, mergedPlaylists[1]!!.displayIndex)
+        assertEquals(3L, mergedPlaylists[2]!!.displayIndex)
     }
 
     @Test
-    public void onlyRemotePlaylists() {
-        final List<PlaylistMetadataEntry> localPlaylists = new ArrayList<>();
-        final List<PlaylistRemoteEntity> remotePlaylists = new ArrayList<>();
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                1, "name1", "url1", "", "", 1, 1L));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                2, "name2", "url2", "", "", 2, 1L));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                3, "name3", "url3", "", "", 4, 1L));
-        final List<PlaylistLocalItem> mergedPlaylists =
-                MergedPlaylistManager.merge(localPlaylists, remotePlaylists);
+    fun onlyRemotePlaylists() {
+        val localPlaylists = listOf<PlaylistMetadataEntry?>()
+        val remotePlaylists = listOf<PlaylistRemoteEntity?>(
+            PlaylistRemoteEntity(1, 1, "name1", "url1", "", "", 1, 1),
+            PlaylistRemoteEntity(2, 2, "name2", "url2", "", "", 2, 1),
+            PlaylistRemoteEntity(3, 3, "name3", "url3", "", "", 4, 1)
+        )
+        val mergedPlaylists = MergedPlaylistManager.merge(localPlaylists, remotePlaylists)
 
-        assertEquals(3, mergedPlaylists.size());
-        assertEquals(1, mergedPlaylists.get(0).getDisplayIndex());
-        assertEquals(2, mergedPlaylists.get(1).getDisplayIndex());
-        assertEquals(4, mergedPlaylists.get(2).getDisplayIndex());
+        assertEquals(3, mergedPlaylists.size)
+        assertEquals(1L, mergedPlaylists[0]!!.displayIndex)
+        assertEquals(2L, mergedPlaylists[1]!!.displayIndex)
+        assertEquals(4L, mergedPlaylists[2]!!.displayIndex)
     }
 
     @Test
-    public void sameIndexWithDifferentName() {
-        final List<PlaylistMetadataEntry> localPlaylists = new ArrayList<>();
-        final List<PlaylistRemoteEntity> remotePlaylists = new ArrayList<>();
-        localPlaylists.add(new PlaylistMetadataEntry(1, "name1", "", false, -1, 0, 1));
-        localPlaylists.add(new PlaylistMetadataEntry(2, "name2", "", false, -1, 1, 1));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                1, "name3", "url1", "", "", 0, 1L));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                2, "name4", "url2", "", "", 1, 1L));
-        final List<PlaylistLocalItem> mergedPlaylists =
-                MergedPlaylistManager.merge(localPlaylists, remotePlaylists);
+    fun sameIndexWithDifferentName() {
+        val localPlaylists = listOf<PlaylistMetadataEntry?>(
+            PlaylistMetadataEntry(1, "name1", "", 0, false, -1, 1),
+            PlaylistMetadataEntry(2, "name2", "", 1, false, -1, 1)
+        )
+        val remotePlaylists = listOf<PlaylistRemoteEntity?>(
+            PlaylistRemoteEntity(1, 1, "name3", "url1", "", "", 0, 1),
+            PlaylistRemoteEntity(2, 2, "name4", "url2", "", "", 1, 1)
+        )
+        val mergedPlaylists = MergedPlaylistManager.merge(localPlaylists, remotePlaylists)
 
-        assertEquals(4, mergedPlaylists.size());
-        assertTrue(mergedPlaylists.get(0) instanceof PlaylistMetadataEntry);
-        assertEquals("name1", ((PlaylistMetadataEntry) mergedPlaylists.get(0)).name);
-        assertTrue(mergedPlaylists.get(1) instanceof PlaylistRemoteEntity);
-        assertEquals("name3", ((PlaylistRemoteEntity) mergedPlaylists.get(1)).getName());
-        assertTrue(mergedPlaylists.get(2) instanceof PlaylistMetadataEntry);
-        assertEquals("name2", ((PlaylistMetadataEntry) mergedPlaylists.get(2)).name);
-        assertTrue(mergedPlaylists.get(3) instanceof PlaylistRemoteEntity);
-        assertEquals("name4", ((PlaylistRemoteEntity) mergedPlaylists.get(3)).getName());
+        assertEquals(4, mergedPlaylists.size)
+        assertTrue(mergedPlaylists[0] is PlaylistMetadataEntry)
+        assertEquals("name1", (mergedPlaylists[0] as PlaylistMetadataEntry).orderingName)
+        assertTrue(mergedPlaylists[1] is PlaylistRemoteEntity)
+        assertEquals("name3", (mergedPlaylists[1] as PlaylistRemoteEntity).orderingName)
+        assertTrue(mergedPlaylists[2] is PlaylistMetadataEntry)
+        assertEquals("name2", (mergedPlaylists[2] as PlaylistMetadataEntry).orderingName)
+        assertTrue(mergedPlaylists[3] is PlaylistRemoteEntity)
+        assertEquals("name4", (mergedPlaylists[3] as PlaylistRemoteEntity).orderingName)
     }
 
     @Test
-    public void sameNameWithDifferentIndex() {
-        final List<PlaylistMetadataEntry> localPlaylists = new ArrayList<>();
-        final List<PlaylistRemoteEntity> remotePlaylists = new ArrayList<>();
-        localPlaylists.add(new PlaylistMetadataEntry(1, "name1", "", false, -1, 1, 1));
-        localPlaylists.add(new PlaylistMetadataEntry(2, "name2", "", false, -1, 3, 1));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                1, "name1", "url1", "", "", 0, 1L));
-        remotePlaylists.add(new PlaylistRemoteEntity(
-                2, "name2", "url2", "", "", 2, 1L));
-        final List<PlaylistLocalItem> mergedPlaylists =
-                MergedPlaylistManager.merge(localPlaylists, remotePlaylists);
+    fun sameNameWithDifferentIndex() {
+        val localPlaylists = listOf<PlaylistMetadataEntry?>(
+            PlaylistMetadataEntry(1, "name1", "", 1, false, -1, 1),
+            PlaylistMetadataEntry(2, "name2", "", 3, false, -1, 1)
+        )
+        val remotePlaylists = listOf<PlaylistRemoteEntity?>(
+            PlaylistRemoteEntity(1, 1, "name1", "url1", "", "", 0, 1),
+            PlaylistRemoteEntity(2, 2, "name2", "url2", "", "", 2, 1)
+        )
+        val mergedPlaylists = MergedPlaylistManager.merge(localPlaylists, remotePlaylists)
 
-        assertEquals(4, mergedPlaylists.size());
-        assertTrue(mergedPlaylists.get(0) instanceof PlaylistRemoteEntity);
-        assertEquals("name1", ((PlaylistRemoteEntity) mergedPlaylists.get(0)).getName());
-        assertTrue(mergedPlaylists.get(1) instanceof PlaylistMetadataEntry);
-        assertEquals("name1", ((PlaylistMetadataEntry) mergedPlaylists.get(1)).name);
-        assertTrue(mergedPlaylists.get(2) instanceof PlaylistRemoteEntity);
-        assertEquals("name2", ((PlaylistRemoteEntity) mergedPlaylists.get(2)).getName());
-        assertTrue(mergedPlaylists.get(3) instanceof PlaylistMetadataEntry);
-        assertEquals("name2", ((PlaylistMetadataEntry) mergedPlaylists.get(3)).name);
+        assertEquals(4, mergedPlaylists.size)
+        assertTrue(mergedPlaylists[0] is PlaylistRemoteEntity)
+        assertEquals("name1", (mergedPlaylists[0] as PlaylistRemoteEntity).orderingName)
+        assertTrue(mergedPlaylists[1] is PlaylistMetadataEntry)
+        assertEquals("name1", (mergedPlaylists[1] as PlaylistMetadataEntry).orderingName)
+        assertTrue(mergedPlaylists[2] is PlaylistRemoteEntity)
+        assertEquals("name2", (mergedPlaylists[2] as PlaylistRemoteEntity).orderingName)
+        assertTrue(mergedPlaylists[3] is PlaylistMetadataEntry)
+        assertEquals("name2", (mergedPlaylists[3] as PlaylistMetadataEntry).orderingName)
     }
 }

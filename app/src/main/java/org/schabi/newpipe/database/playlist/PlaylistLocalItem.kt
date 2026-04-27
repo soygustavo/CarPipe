@@ -1,18 +1,16 @@
-package org.schabi.newpipe.database.playlist;
+/*
+ * SPDX-FileCopyrightText: 2018-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.Nullable;
+package org.schabi.newpipe.database.playlist
 
-import org.schabi.newpipe.database.LocalItem;
+import org.schabi.newpipe.database.LocalItem
 
-public interface PlaylistLocalItem extends LocalItem {
-    String getOrderingName();
-
-    long getDisplayIndex();
-
-    long getUid();
-
-    void setDisplayIndex(long displayIndex);
-
-    @Nullable
-    String getThumbnailUrl();
+interface PlaylistLocalItem : LocalItem {
+    val orderingName: String?
+    val displayIndex: Long?
+    val uid: Long
+    val thumbnailUrl: String?
 }

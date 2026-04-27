@@ -1,50 +1,36 @@
-package org.schabi.newpipe;
-
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Bundle;
-
-import org.schabi.newpipe.util.NavigationHelper;
-
 /*
- * Copyright (C) Hans-Christoph Steiner 2016 <hans@eds.org>
- * ExitActivity.java is part of NewPipe.
- *
- * NewPipe is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * NewPipe is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with NewPipe.  If not, see <http://www.gnu.org/licenses/>.
+ * SPDX-FileCopyrightText: 2016-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-public class ExitActivity extends Activity {
+package org.schabi.newpipe
 
-    public static void exitAndRemoveFromRecentApps(final Activity activity) {
-        final Intent intent = new Intent(activity, ExitActivity.class);
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Intent
+import android.os.Bundle
+import org.schabi.newpipe.util.NavigationHelper
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-                | Intent.FLAG_ACTIVITY_CLEAR_TASK
-                | Intent.FLAG_ACTIVITY_NO_ANIMATION);
-
-        activity.startActivity(intent);
+class ExitActivity : Activity() {
+    @SuppressLint("NewApi")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        finishAndRemoveTask()
+        NavigationHelper.restartApp(this)
     }
 
-    @SuppressLint("NewApi")
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    companion object {
+        @JvmStatic
+        fun exitAndRemoveFromRecentApps(activity: Activity) {
+            val intent = Intent(activity, ExitActivity::class.java)
+            intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                    or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                    or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    or Intent.FLAG_ACTIVITY_NO_ANIMATION
+            )
 
-        finishAndRemoveTask();
-
-        NavigationHelper.restartApp(this);
+            activity.startActivity(intent)
+        }
     }
 }

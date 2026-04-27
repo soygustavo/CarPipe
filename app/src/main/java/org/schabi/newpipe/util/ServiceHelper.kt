@@ -1,82 +1,55 @@
-package org.schabi.newpipe.util;
+/*
+ * SPDX-FileCopyrightText: 2018-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import static org.schabi.newpipe.extractor.ServiceList.SoundCloud;
+package org.schabi.newpipe.util
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.Context
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager
+import com.grack.nanojson.JsonParser
+import java.util.concurrent.TimeUnit
+import org.schabi.newpipe.R
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.ServiceList
+import org.schabi.newpipe.extractor.StreamingService
+import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance
+import org.schabi.newpipe.ktx.getStringSafe
 
-import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
-import androidx.preference.PreferenceManager;
+object ServiceHelper {
+    private val DEFAULT_FALLBACK_SERVICE: StreamingService = ServiceList.YouTube
 
-import com.grack.nanojson.JsonObject;
-import com.grack.nanojson.JsonParser;
-import com.grack.nanojson.JsonParserException;
-
-import org.schabi.newpipe.R;
-import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.ServiceList;
-import org.schabi.newpipe.extractor.StreamingService;
-import org.schabi.newpipe.extractor.exceptions.ExtractionException;
-import org.schabi.newpipe.extractor.services.peertube.PeertubeInstance;
-
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-public final class ServiceHelper {
-    private static final StreamingService DEFAULT_FALLBACK_SERVICE = ServiceList.YouTube;
-
-    private ServiceHelper() { }
-
+    @JvmStatic
     @DrawableRes
-    public static int getIcon(final int serviceId) {
-        switch (serviceId) {
-            case 0:
-                return R.drawable.ic_smart_display;
-            case 1:
-                return R.drawable.ic_cloud;
-            case 2:
-                return R.drawable.ic_placeholder_media_ccc;
-            case 3:
-                return R.drawable.ic_placeholder_peertube;
-            case 4:
-                return R.drawable.ic_placeholder_bandcamp;
-            default:
-                return R.drawable.ic_circle;
+    fun getIcon(serviceId: Int): Int {
+        return when (serviceId) {
+            0 -> R.drawable.ic_smart_display
+            1 -> R.drawable.ic_cloud
+            2 -> R.drawable.ic_placeholder_media_ccc
+            3 -> R.drawable.ic_placeholder_peertube
+            4 -> R.drawable.ic_placeholder_bandcamp
+            else -> R.drawable.ic_circle
         }
     }
 
-    public static String getTranslatedFilterString(final String filter, final Context c) {
-        switch (filter) {
-            case "all":
-                return c.getString(R.string.all);
-            case "videos":
-            case "sepia_videos":
-            case "music_videos":
-                return c.getString(R.string.videos_string);
-            case "channels":
-                return c.getString(R.string.channels);
-            case "playlists":
-            case "music_playlists":
-                return c.getString(R.string.playlists);
-            case "tracks":
-                return c.getString(R.string.tracks);
-            case "users":
-                return c.getString(R.string.users);
-            case "conferences":
-                return c.getString(R.string.conferences);
-            case "events":
-                return c.getString(R.string.events);
-            case "music_songs":
-                return c.getString(R.string.songs);
-            case "music_albums":
-                return c.getString(R.string.albums);
-            case "music_artists":
-                return c.getString(R.string.artists);
-            default:
-                return filter;
+    @JvmStatic
+    fun getTranslatedFilterString(filter: String, context: Context): String {
+        return when (filter) {
+            "all" -> context.getString(R.string.all)
+            "videos", "sepia_videos", "music_videos" -> context.getString(R.string.videos_string)
+            "channels" -> context.getString(R.string.channels)
+            "playlists", "music_playlists" -> context.getString(R.string.playlists)
+            "tracks" -> context.getString(R.string.tracks)
+            "users" -> context.getString(R.string.users)
+            "conferences" -> context.getString(R.string.conferences)
+            "events" -> context.getString(R.string.events)
+            "music_songs" -> context.getString(R.string.songs)
+            "music_albums" -> context.getString(R.string.albums)
+            "music_artists" -> context.getString(R.string.artists)
+            else -> filter
         }
     }
 
@@ -86,15 +59,13 @@ public final class ServiceHelper {
      * @param serviceId service to get the instructions for
      * @return the string resource containing the instructions or -1 if the service don't support it
      */
+    @JvmStatic
     @StringRes
-    public static int getImportInstructions(final int serviceId) {
-        switch (serviceId) {
-            case 0:
-                return R.string.import_youtube_instructions;
-            case 1:
-                return R.string.import_soundcloud_instructions;
-            default:
-                return -1;
+    fun getImportInstructions(serviceId: Int): Int {
+        return when (serviceId) {
+            0 -> R.string.import_youtube_instructions
+            1 -> R.string.import_soundcloud_instructions
+            else -> -1
         }
     }
 
@@ -105,43 +76,39 @@ public final class ServiceHelper {
      * @param serviceId service to get the hint for
      * @return the hint's string resource or -1 if the service don't support it
      */
+    @JvmStatic
     @StringRes
-    public static int getImportInstructionsHint(final int serviceId) {
-        switch (serviceId) {
-            case 1:
-                return R.string.import_soundcloud_instructions_hint;
-            default:
-                return -1;
+    fun getImportInstructionsHint(serviceId: Int): Int {
+        return when (serviceId) {
+            1 -> R.string.import_soundcloud_instructions_hint
+            else -> -1
         }
     }
 
-    public static int getSelectedServiceId(final Context context) {
-        return Optional.ofNullable(getSelectedService(context))
-                .orElse(DEFAULT_FALLBACK_SERVICE)
-                .getServiceId();
+    @JvmStatic
+    fun getSelectedServiceId(context: Context): Int {
+        return (getSelectedService(context) ?: DEFAULT_FALLBACK_SERVICE).serviceId
     }
 
-    @Nullable
-    public static StreamingService getSelectedService(final Context context) {
-        final String serviceName = PreferenceManager.getDefaultSharedPreferences(context)
-                .getString(context.getString(R.string.current_service_key),
-                        context.getString(R.string.default_service_value));
+    @JvmStatic
+    fun getSelectedService(context: Context): StreamingService? {
+        val serviceName: String = PreferenceManager.getDefaultSharedPreferences(context)
+            .getStringSafe(
+                context.getString(R.string.current_service_key),
+                context.getString(R.string.default_service_value)
+            )
 
-        try {
-            return NewPipe.getService(serviceName);
-        } catch (final ExtractionException e) {
-            return null;
-        }
+        return runCatching { NewPipe.getService(serviceName) }.getOrNull()
     }
 
-    @NonNull
-    public static String getNameOfServiceById(final int serviceId) {
+    @JvmStatic
+    fun getNameOfServiceById(serviceId: Int): String {
         return ServiceList.all().stream()
-                .filter(s -> s.getServiceId() == serviceId)
-                .findFirst()
-                .map(StreamingService::getServiceInfo)
-                .map(StreamingService.ServiceInfo::getName)
-                .orElse("<unknown>");
+            .filter { it.serviceId == serviceId }
+            .findFirst()
+            .map(StreamingService::getServiceInfo)
+            .map(StreamingService.ServiceInfo::getName)
+            .orElse("<unknown>")
     }
 
     /**
@@ -149,65 +116,53 @@ public final class ServiceHelper {
      * @return the service corresponding to the provided id
      * @throws java.util.NoSuchElementException if there is no service with the provided id
      */
-    @NonNull
-    public static StreamingService getServiceById(final int serviceId) {
-        return ServiceList.all().stream()
-                .filter(s -> s.getServiceId() == serviceId)
-                .findFirst()
-                .orElseThrow();
+    @JvmStatic
+    fun getServiceById(serviceId: Int): StreamingService {
+        return ServiceList.all().firstNotNullOf { it.takeIf { it.serviceId == serviceId } }
     }
 
-    public static void setSelectedServiceId(final Context context, final int serviceId) {
-        String serviceName;
-        try {
-            serviceName = NewPipe.getService(serviceId).getServiceInfo().getName();
-        } catch (final ExtractionException e) {
-            serviceName = DEFAULT_FALLBACK_SERVICE.getServiceInfo().getName();
-        }
+    @JvmStatic
+    fun setSelectedServiceId(context: Context, serviceId: Int) {
+        val serviceName = runCatching { NewPipe.getService(serviceId).serviceInfo.name }
+            .getOrDefault(DEFAULT_FALLBACK_SERVICE.serviceInfo.name)
 
-        setSelectedServicePreferences(context, serviceName);
+        setSelectedServicePreferences(context, serviceName)
     }
 
-    private static void setSelectedServicePreferences(final Context context,
-                                                      final String serviceName) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit().
-                putString(context.getString(R.string.current_service_key), serviceName).apply();
+    private fun setSelectedServicePreferences(context: Context, serviceName: String?) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        sharedPreferences.edit { putString(context.getString(R.string.current_service_key), serviceName) }
     }
 
-    public static long getCacheExpirationMillis(final int serviceId) {
-        if (serviceId == SoundCloud.getServiceId()) {
-            return TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES);
+    @JvmStatic
+    fun getCacheExpirationMillis(serviceId: Int): Long {
+        return if (serviceId == ServiceList.SoundCloud.serviceId) {
+            TimeUnit.MILLISECONDS.convert(5, TimeUnit.MINUTES)
         } else {
-            return TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS);
+            TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)
         }
     }
 
-    public static void initService(final Context context, final int serviceId) {
-        if (serviceId == ServiceList.PeerTube.getServiceId()) {
-            final SharedPreferences sharedPreferences = PreferenceManager
-                    .getDefaultSharedPreferences(context);
-            final String json = sharedPreferences.getString(context.getString(
-                    R.string.peertube_selected_instance_key), null);
-            if (null == json) {
-                return;
-            }
+    fun initService(context: Context, serviceId: Int) {
+        if (serviceId == ServiceList.PeerTube.serviceId) {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            val json = sharedPreferences.getString(
+                context.getString(R.string.peertube_selected_instance_key),
+                null
+            ) ?: return
 
-            final JsonObject jsonObject;
-            try {
-                jsonObject = JsonParser.object().from(json);
-            } catch (final JsonParserException e) {
-                return;
-            }
-            final String name = jsonObject.getString("name");
-            final String url = jsonObject.getString("url");
-            final PeertubeInstance instance = new PeertubeInstance(url, name);
-            ServiceList.PeerTube.setInstance(instance);
+            val jsonObject = runCatching { JsonParser.`object`().from(json) }
+                .getOrElse { return@initService }
+
+            ServiceList.PeerTube.instance = PeertubeInstance(
+                jsonObject.getString("url"),
+                jsonObject.getString("name")
+            )
         }
     }
 
-    public static void initServices(final Context context) {
-        for (final StreamingService s : ServiceList.all()) {
-            initService(context, s.getServiceId());
-        }
+    @JvmStatic
+    fun initServices(context: Context) {
+        ServiceList.all().forEach { initService(context, it.serviceId) }
     }
 }

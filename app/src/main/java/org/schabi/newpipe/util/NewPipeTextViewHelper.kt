@@ -1,61 +1,60 @@
-package org.schabi.newpipe.util;
+/*
+ * SPDX-FileCopyrightText: 2021-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import android.content.Context;
-import android.text.Selection;
-import android.text.Spannable;
-import android.widget.TextView;
+package org.schabi.newpipe.util
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.text.Selection
+import android.text.Spannable
+import android.widget.TextView
+import org.schabi.newpipe.util.external_communication.ShareUtils
 
-import org.schabi.newpipe.util.external_communication.ShareUtils;
-import org.schabi.newpipe.views.NewPipeEditText;
-import org.schabi.newpipe.views.NewPipeTextView;
-
-public final class NewPipeTextViewHelper {
-    private NewPipeTextViewHelper() {
-    }
-
+object NewPipeTextViewHelper {
     /**
-     * Share the selected text of {@link NewPipeTextView NewPipeTextViews} and
-     * {@link NewPipeEditText NewPipeEditTexts} with
-     * {@link ShareUtils#shareText(Context, String, String)}.
+     * Share the selected text of [NewPipeTextViews][org.schabi.newpipe.views.NewPipeTextView] and
+     * [NewPipeEditTexts][org.schabi.newpipe.views.NewPipeEditText] with
+     * [ShareUtils.shareText].
      *
-     * <p>
+     *
+     *
      * This allows EMUI users to get the Android share sheet instead of the EMUI share sheet when
-     * using the {@code Share} command of the popup menu which appears when selecting text.
-     * </p>
+     * using the `Share` command of the popup menu which appears when selecting text.
      *
-     * @param textView the {@link TextView} on which sharing the selected text. It should be a
-     *                 {@link NewPipeTextView} or a {@link NewPipeEditText} (even if
-     *                 {@link TextView standard TextViews} are supported).
+     *
+     * @param textView the [TextView] on which sharing the selected text. It should be a
+     * [org.schabi.newpipe.views.NewPipeTextView] or a [org.schabi.newpipe.views.NewPipeEditText]
+     * (even if [standard TextViews][TextView] are supported).
      */
-    public static void shareSelectedTextWithShareUtils(@NonNull final TextView textView) {
-        final CharSequence textViewText = textView.getText();
-        shareSelectedTextIfNotNullAndNotEmpty(textView, getSelectedText(textView, textViewText));
-        if (textViewText instanceof Spannable) {
-            Selection.setSelection((Spannable) textViewText, textView.getSelectionEnd());
+    @JvmStatic
+    fun shareSelectedTextWithShareUtils(textView: TextView) {
+        val textViewText = textView.getText()
+        shareSelectedTextIfNotNullAndNotEmpty(textView, getSelectedText(textView, textViewText))
+        if (textViewText is Spannable) {
+            Selection.setSelection(textViewText, textView.selectionEnd)
         }
     }
 
-    @Nullable
-    private static CharSequence getSelectedText(@NonNull final TextView textView,
-                                                @Nullable final CharSequence text) {
+    private fun getSelectedText(textView: TextView, text: CharSequence?): CharSequence? {
         if (!textView.hasSelection() || text == null) {
-            return null;
+            return null
         }
 
-        final int start = textView.getSelectionStart();
-        final int end = textView.getSelectionEnd();
-        return String.valueOf(start > end ? text.subSequence(end, start)
-                : text.subSequence(start, end));
+        val start = textView.selectionStart
+        val end = textView.selectionEnd
+        return if (start > end) {
+            text.subSequence(end, start)
+        } else {
+            text.subSequence(start, end)
+        }
     }
 
-    private static void shareSelectedTextIfNotNullAndNotEmpty(
-            @NonNull final TextView textView,
-            @Nullable final CharSequence selectedText) {
-        if (selectedText != null && selectedText.length() != 0) {
-            ShareUtils.shareText(textView.getContext(), "", selectedText.toString());
+    private fun shareSelectedTextIfNotNullAndNotEmpty(
+        textView: TextView,
+        selectedText: CharSequence?
+    ) {
+        if (!selectedText.isNullOrEmpty()) {
+            ShareUtils.shareText(textView.context, "", selectedText.toString())
         }
     }
 }

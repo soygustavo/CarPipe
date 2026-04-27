@@ -1,9 +1,14 @@
-package org.schabi.newpipe.error;
+/*
+ * SPDX-FileCopyrightText: 2017-2025 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
+package org.schabi.newpipe.error
 
 /**
  * The user actions that can cause an error.
  */
-public enum UserAction {
+enum class UserAction(val message: String) {
     USER_REPORT("user report"),
     UI_ERROR("ui error"),
     DATABASE_IMPORT_EXPORT("database import or export"),
@@ -33,15 +38,7 @@ public enum UserAction {
     SHARE_TO_NEWPIPE("share to newpipe"),
     CHECK_FOR_NEW_APP_VERSION("check for new app version"),
     OPEN_INFO_ITEM_DIALOG("open info item dialog"),
-    GETTING_MAIN_SCREEN_TAB("getting main screen tab");
-
-    private final String message;
-
-    UserAction(final String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+    GETTING_MAIN_SCREEN_TAB("getting main screen tab"),
+    PLAY_ON_POPUP("play on popup"),
+    SUBSCRIPTIONS("loading subscriptions")
 }

@@ -1,22 +1,19 @@
-package org.schabi.newpipe.util;
+/*
+ * SPDX-FileCopyrightText: 2023-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import android.content.Context;
-import android.content.SharedPreferences;
+package org.schabi.newpipe.util
 
-import androidx.preference.PreferenceManager;
-
-import org.schabi.newpipe.R;
+import android.content.Context
+import androidx.preference.PreferenceManager
+import org.schabi.newpipe.R
 
 /**
  * For preferences with dependencies and multiple use case,
  * this class can be used to reduce the lines of code.
  */
-public final class DependentPreferenceHelper {
-
-    private DependentPreferenceHelper() {
-        // no instance
-    }
-
+object DependentPreferenceHelper {
     /**
      * Option `Resume playback` depends on `Watch history`, this method can be used to retrieve if
      * `Resume playback` and its dependencies are all enabled.
@@ -24,13 +21,12 @@ public final class DependentPreferenceHelper {
      * @param context the Android context
      * @return returns true if `Resume playback` and `Watch history` are both enabled
      */
-    public static boolean getResumePlaybackEnabled(final Context context) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    @JvmStatic
+    fun getResumePlaybackEnabled(context: Context): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        return prefs.getBoolean(context.getString(
-                        R.string.enable_watch_history_key), true)
-                && prefs.getBoolean(context.getString(
-                        R.string.enable_playback_resume_key), true);
+        return prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true) &&
+            prefs.getBoolean(context.getString(R.string.enable_playback_resume_key), true)
     }
 
     /**
@@ -40,12 +36,11 @@ public final class DependentPreferenceHelper {
      * @param context the Android context
      * @return returns true if `Positions in lists` and `Watch history` are both enabled
      */
-    public static boolean getPositionsInListsEnabled(final Context context) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    @JvmStatic
+    fun getPositionsInListsEnabled(context: Context): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
 
-        return prefs.getBoolean(context.getString(
-                        R.string.enable_watch_history_key), true)
-                && prefs.getBoolean(context.getString(
-                        R.string.enable_playback_state_lists_key), true);
+        return prefs.getBoolean(context.getString(R.string.enable_watch_history_key), true) &&
+            prefs.getBoolean(context.getString(R.string.enable_playback_state_lists_key), true)
     }
 }

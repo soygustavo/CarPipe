@@ -1,39 +1,42 @@
-package org.schabi.newpipe.database;
+/*
+ * SPDX-FileCopyrightText: 2017-2022 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.Update;
+package org.schabi.newpipe.database
 
-import java.util.Collection;
-import java.util.List;
-
-import io.reactivex.rxjava3.core.Flowable;
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.Update
+import io.reactivex.rxjava3.core.Flowable
 
 @Dao
-public interface BasicDAO<Entity> {
+interface BasicDAO<Entity> {
+
     /* Inserts */
     @Insert
-    long insert(Entity entity);
+    fun insert(entity: Entity): Long
 
     @Insert
-    List<Long> insertAll(Collection<Entity> entities);
+    fun insertAll(entities: Collection<Entity>): List<Long>
 
     /* Searches */
-    Flowable<List<Entity>> getAll();
+    fun getAll(): Flowable<List<Entity>>
 
-    Flowable<List<Entity>> listByService(int serviceId);
+    fun listByService(serviceId: Int): Flowable<List<Entity>>
 
     /* Deletes */
     @Delete
-    void delete(Entity entity);
+    fun delete(entity: Entity)
 
-    int deleteAll();
+    fun deleteAll(): Int
 
     /* Updates */
     @Update
-    int update(Entity entity);
+    fun update(entity: Entity): Int
 
     @Update
-    void update(Collection<Entity> entities);
+    fun update(entities: Collection<Entity>)
 }

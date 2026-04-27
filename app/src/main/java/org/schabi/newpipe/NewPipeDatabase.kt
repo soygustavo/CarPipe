@@ -1,70 +1,78 @@
-package org.schabi.newpipe;
+/*
+ * SPDX-FileCopyrightText: 2017-2024 NewPipe contributors <https://newpipe.net>
+ * SPDX-FileCopyrightText: 2025 NewPipe e.V. <https://newpipe-ev.de>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import static org.schabi.newpipe.database.AppDatabase.DATABASE_NAME;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_1_2;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_2_3;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_3_4;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_4_5;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_5_6;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_6_7;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_7_8;
-import static org.schabi.newpipe.database.Migrations.MIGRATION_8_9;
+package org.schabi.newpipe
 
-import android.content.Context;
-import android.database.Cursor;
+import android.content.Context
+import androidx.room.Room.databaseBuilder
+import kotlin.concurrent.Volatile
+import org.schabi.newpipe.database.AppDatabase
+import org.schabi.newpipe.database.Migrations.MIGRATION_1_2
+import org.schabi.newpipe.database.Migrations.MIGRATION_2_3
+import org.schabi.newpipe.database.Migrations.MIGRATION_3_4
+import org.schabi.newpipe.database.Migrations.MIGRATION_4_5
+import org.schabi.newpipe.database.Migrations.MIGRATION_5_6
+import org.schabi.newpipe.database.Migrations.MIGRATION_6_7
+import org.schabi.newpipe.database.Migrations.MIGRATION_7_8
+import org.schabi.newpipe.database.Migrations.MIGRATION_8_9
 
-import androidx.annotation.NonNull;
-import androidx.room.Room;
+object NewPipeDatabase {
 
-import org.schabi.newpipe.database.AppDatabase;
+    @Volatile
+    private var databaseInstance: AppDatabase? = null
 
-public final class NewPipeDatabase {
-    private static volatile AppDatabase databaseInstance;
-
-    private NewPipeDatabase() {
-        //no instance
+    private fun getDatabase(context: Context): AppDatabase {
+        return databaseBuilder(
+            context.applicationContext,
+            AppDatabase::class.java,
+            AppDatabase.Companion.DATABASE_NAME
+        ).addMigrations(
+            MIGRATION_1_2,
+            MIGRATION_2_3,
+            MIGRATION_3_4,
+            MIGRATION_4_5,
+            MIGRATION_5_6,
+            MIGRATION_6_7,
+            MIGRATION_7_8,
+            MIGRATION_8_9
+        ).build()
     }
 
-    private static AppDatabase getDatabase(final Context context) {
-        return Room
-                .databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5,
-                        MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
-                .build();
-    }
-
-    @NonNull
-    public static AppDatabase getInstance(@NonNull final Context context) {
-        AppDatabase result = databaseInstance;
+    @JvmStatic
+    fun getInstance(context: Context): AppDatabase {
+        var result = databaseInstance
         if (result == null) {
-            synchronized (NewPipeDatabase.class) {
-                result = databaseInstance;
+            synchronized(NewPipeDatabase::class.java) {
+                result = databaseInstance
                 if (result == null) {
-                    databaseInstance = getDatabase(context);
-                    result = databaseInstance;
+                    databaseInstance = getDatabase(context)
+                    result = databaseInstance
                 }
             }
         }
 
-        return result;
+        return result!!
     }
 
-    public static void checkpoint() {
-        if (databaseInstance == null) {
-            throw new IllegalStateException("database is not initialized");
-        }
-        final Cursor c = databaseInstance.query("pragma wal_checkpoint(full)", null);
+    @JvmStatic
+    fun checkpoint() {
+        checkNotNull(databaseInstance) { "database is not initialized" }
+        val c = databaseInstance!!.query("pragma wal_checkpoint(full)", null)
         if (c.moveToFirst() && c.getInt(0) == 1) {
-            throw new RuntimeException("Checkpoint was blocked from completing");
+            throw RuntimeException("Checkpoint was blocked from completing")
         }
     }
 
-    public static void close() {
+    @JvmStatic
+    fun close() {
         if (databaseInstance != null) {
-            synchronized (NewPipeDatabase.class) {
+            synchronized(NewPipeDatabase::class.java) {
                 if (databaseInstance != null) {
-                    databaseInstance.close();
-                    databaseInstance = null;
+                    databaseInstance!!.close()
+                    databaseInstance = null
                 }
             }
         }

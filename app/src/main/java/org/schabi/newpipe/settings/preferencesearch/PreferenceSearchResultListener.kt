@@ -1,7 +1,10 @@
-package org.schabi.newpipe.settings.preferencesearch;
+/*
+ * SPDX-FileCopyrightText: 2022-2026 NewPipe contributors <https://newpipe.net>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import androidx.annotation.NonNull;
+package org.schabi.newpipe.settings.preferencesearch
 
-public interface PreferenceSearchResultListener {
-    void onSearchResultClicked(@NonNull PreferenceSearchItem result);
+interface PreferenceSearchResultListener {
+    fun onSearchResultClicked(result: PreferenceSearchItem)
 }
